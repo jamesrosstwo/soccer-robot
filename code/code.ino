@@ -4,8 +4,10 @@ class Motor{
   private:
   public:
     int pin;
-    Motor(int pin_num){
+    int flip;
+    Motor(int pin_num, bool isFlipped){
       pin = pin_num;
+      flip = isFlipped;
       AF_DCMotor motor(pin);
     }
 
