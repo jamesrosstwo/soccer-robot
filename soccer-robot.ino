@@ -5,11 +5,11 @@ AF_DCMotor frontLeftMotor(1);
 AF_DCMotor frontRightMotor(2);
 AF_DCMotor backLeftMotor(3);
 AF_DCMotor backRightMotor(4);
-AF_DCMotor motors = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
+AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
 void moveRobot(int xSpeed, float ySpeed){
-  float y = ySpeed * sqrt(2)
-  float x = xSpeed * sqrt(2)
+  float y = ySpeed * sqrt(2);
+  float x = xSpeed * sqrt(2);
   float m0_2 = y + (x/2);
   float m1_3 = y - (x/2);
   if(m1_3 < 0){
