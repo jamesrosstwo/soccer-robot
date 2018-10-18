@@ -7,7 +7,7 @@ AF_DCMotor backLeftMotor(3);
 AF_DCMotor backRightMotor(4);
 AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
-void moveRobot(int xSpeed, float ySpeed){
+void moveRobot(int xSpeed, int ySpeed){
   float y = ySpeed * sqrt(2);
   float x = xSpeed * sqrt(2);
   float m0_2 = y + (x/2);
@@ -30,6 +30,13 @@ void moveRobot(int xSpeed, float ySpeed){
   motors[1].setSpeed(abs(m1_3));
   motors[2].setSpeed(abs(m0_2));
   motors[3].setSpeed(abs(m1_3));
+}
+
+//moves robot in 360 degree direction with heading
+void moveRobotHeading(int heading, int str){
+  float x = cos(heading * (PI/180)) * str;
+  float y = sin(heading * (PI/180)) * str;
+  moveRobot(x,y);
 }
 
 void stopRobot(){
