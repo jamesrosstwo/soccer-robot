@@ -48,8 +48,8 @@ void stopRobot(){
 
 class Grayscale{
   private:
-  int result;
-  int pin;
+    int result;
+    int pin;
  
   public:
     Grayscale(int pin_num);  
@@ -63,14 +63,41 @@ int Grayscale::readShade(){
   return analogRead(pin);
 }
 
+//from https://www.arduino.cc/en/Tutorial/Ping
+long microsecondsToCentimeters(long microseconds) {
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the object we
+  // take half of the distance travelled.
+  return microseconds / 29 / 2;
+}
+
 class PingSensor{
+  private:
+    int pin;
+    long distance;
   public:
-    PingSensor(){
-      
-    }
+    PingSensor(int pin_num);
+    long readDist();
 };
 
+PingSensor::PingSensor(int pin_num){
+  pin = pin_num;
+}
+
+long PingSensor::readDist(){
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pin, LOW);
+  pinMode(pin, INPUT);
+  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
+  return distance;
+}
+
 class IRSensor{
+  
   public:
     IRSensor(){
       
