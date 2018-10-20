@@ -7,6 +7,8 @@ AF_DCMotor backLeftMotor(3);
 AF_DCMotor backRightMotor(4);
 AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
+int grayScale=7;
+
 void moveRobot(int xSpeed, int ySpeed){
   float y = ySpeed * sqrt(2);
   float x = xSpeed * sqrt(2);
@@ -44,11 +46,24 @@ void stopRobot(){
 }
 
 class Grayscale{
+  private:
+  int result;
+  int pin;
+ 
   public:
-    Grayscale(){
-    
-    }
+    Grayscale(int pin_num);  
+    int readShade();
 };
+
+Grayscale::Grayscale(int pin_num){
+  Serial.println("haha");
+  Serial.println(pin_num);
+  pin=pin_num;
+}
+int Grayscale::readShade(){
+  Serial.println(pin);
+  return analogRead(pin);
+}
 
 class PingSensor{
   public:
