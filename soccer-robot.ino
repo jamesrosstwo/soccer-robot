@@ -7,9 +7,12 @@ AF_DCMotor backLeftMotor(3);
 AF_DCMotor backRightMotor(4);
 AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
+int grayScale=7;
+
 void moveRobot(int xSpeed, int ySpeed){
-  float y = ySpeed * sqrt(2);
-  float x = xSpeed * sqrt(2);
+  
+  float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
+  float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
   float m0_2 = y + (x/2);
   float m1_3 = y - (x/2);
   if(m1_3 < 0){
@@ -44,11 +47,21 @@ void stopRobot(){
 }
 
 class Grayscale{
+  private:
+  int result;
+  int pin;
+ 
   public:
-    Grayscale(){
-    
-    }
+    Grayscale(int pin_num);  
+    int readShade();
 };
+
+Grayscale::Grayscale(int pin_num){
+  pin=pin_num;
+}
+int Grayscale::readShade(){
+  return analogRead(pin);
+}
 
 class PingSensor{
   public:
