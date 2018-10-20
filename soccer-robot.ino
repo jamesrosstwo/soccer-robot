@@ -86,7 +86,7 @@ void testMotors(){
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);           // set up Serial library at 9600 bps
+  Serial.begin(250000);           // set baud rate to 250k
   Serial.println("Motor test!");
   
   // turn on motor
