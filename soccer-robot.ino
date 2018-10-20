@@ -57,18 +57,9 @@ class Grayscale{
 };
 
 Grayscale::Grayscale(int pin_num){
-<<<<<<< HEAD
   pin=pin_num;
 }
 int Grayscale::readShade(){
-=======
-  Serial.println("haha");
-  Serial.println(pin_num);
-  pin=pin_num;
-}
-int Grayscale::readShade(){
-  Serial.println(pin);
->>>>>>> a73bf1e4ce8d55af20905ce9ee512db6cf80342b
   return analogRead(pin);
 }
 
