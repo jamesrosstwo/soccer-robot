@@ -1,4 +1,9 @@
 #include <AFMotor.h>
+#include "I2Cdev.h"
+#include "MPU6050.h"
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    #include "Wire.h"
+#endif
 
 class Grayscale{
   private:
@@ -81,6 +86,36 @@ PingSensor bPingSensor(13);
 PingSensor lPingSensor(14);
 PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
 
+MPU6050 accelgyro;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+#define OUTPUT_READABLE_ACCELGYRO
+
+void setupGyroAccel(){
+  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+      Wire.begin();
+  #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+      Fastwire::setup(400, true);
+  #endif
+  accelgyro.initialize();
+  Serial.println("Testing device connections...");
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+}
+
+void readAccelGyro(){
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  #ifdef OUTPUT_READABLE_ACCELGYRO
+        // display tab-separated accel/gyro x/y/z values
+        Serial.print("a/g:\t");
+        Serial.print(ax); Serial.print("\t");
+        Serial.print(ay); Serial.print("\t");
+        Serial.print(az); Serial.print("\t");
+        Serial.print(gx); Serial.print("\t");
+        Serial.print(gy); Serial.print("\t");
+        Serial.println(gz);
+    #endif
+}
+
 void moveRobot(int xSpeed, int ySpeed){
   
   float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
@@ -95,11 +130,11 @@ void moveRobot(int xSpeed, int ySpeed){
     motors[3].run(FORWARD);
   }
   if(m0_2 < 0){
-    motors[1].run(BACKWARD);
-    motors[3].run(BACKWARD);
+    motors[0].run(BACKWARD);
+    motors[2].run(BACKWARD);
   }else{
-    motors[1].run(FORWARD);
-    motors[3].run(FORWARD);
+    motors[0].run(FORWARD);
+    motors[2].run(FORWARD);
   }
   motors[0].setSpeed(abs(m0_2));
   motors[1].setSpeed(abs(m1_3));
@@ -144,11 +179,13 @@ void testMotors(){
 void setup() {
   Serial.begin(250000);           // set baud rate to 250k
   Serial.println("Motor test!");
+  setupAccelGyro();
   
-  testMotors(); 
+//  testMotors(); 
 }
 
 void loop() {
+  readAccelGyro();
   // put your main code here, to run repeatedly:
-
+  
 }
