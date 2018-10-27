@@ -29,13 +29,13 @@ void moveRobot(int xSpeed, int ySpeed)
   }
   if (m0_2 < 0)
   {
-    motors[1].run(BACKWARD);
-    motors[3].run(BACKWARD);
+    motors[0].run(BACKWARD);
+    motors[2].run(BACKWARD);
   }
   else
   {
-    motors[1].run(FORWARD);
-    motors[3].run(FORWARD);
+    motors[0].run(FORWARD);
+    motors[2].run(FORWARD);
   }
   motors[0].setSpeed(abs(m0_2));
   motors[1].setSpeed(abs(m1_3));
@@ -145,8 +145,19 @@ Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
 void loop()
 {
    InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-   
-  Serial.println(IRDir());
+   int test=IRDir();
+  Serial.println(test);
+  if(test!=0){
+    if(test>5){
+      moveRobot(200,-200);
+    }
+    else{
+      moveRobot(-200,200);
+    }
+      }
+  else{
+   stopRobot();
+  }
   delay(100); //delay a tenth of a second
   // put your main code here, to run repeatedly:
 }
