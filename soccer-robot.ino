@@ -1,6 +1,6 @@
 #include <AFMotor.h>
-#include "I2Cdev.h"
-#include "MPU6050.h"
+#include <I2Cdev.h>
+#include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
@@ -91,7 +91,7 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 #define OUTPUT_READABLE_ACCELGYRO
 
-void setupGyroAccel(){
+void setupAccelGyro(){
   #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
       Wire.begin();
   #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
@@ -106,7 +106,7 @@ void readAccelGyro(){
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   #ifdef OUTPUT_READABLE_ACCELGYRO
         // display tab-separated accel/gyro x/y/z values
-        Serial.print("a/g:\t");
+        Serial.print("a/g:\t"); 
         Serial.print(ax); Serial.print("\t");
         Serial.print(ay); Serial.print("\t");
         Serial.print(az); Serial.print("\t");
