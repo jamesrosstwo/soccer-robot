@@ -11,7 +11,7 @@ class Grayscale{
     int pin;
  
   public:
-    Grayscale(int pin_num);  
+    Grayscale(int pin_num);
     int readShade();
 };
 
@@ -24,9 +24,6 @@ int Grayscale::readShade(){
 
 //from https://www.arduino.cc/en/Tutorial/Ping
 long microsecondsToCentimeters(long microseconds) {
-  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
-  // The ping travels out and back, so to find the distance of the object we
-  // take half of the distance travelled.
   return microseconds / 29 / 2;
 }
 
