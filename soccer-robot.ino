@@ -17,6 +17,8 @@ void moveRobot(int xSpeed, int ySpeed)
   float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
   float m0_2 = y + (x / 2);
   float m1_3 = y - (x / 2);
+  Serial.println("zero and two");
+  Serial.println(m0_2);
   if (m1_3 < 0)
   {
     motors[1].run(BACKWARD);
@@ -128,9 +130,17 @@ InfraredResult readIn=InfraredSeeker::ReadAC();
 void testMotors()
 {
   moveRobotHeading(0, 100);
+  delay(1000);
+  
   moveRobotHeading(90, 100);
+  delay(1000);
+  
   moveRobotHeading(180, 100);
+  delay(1000);
+  Serial.println("mark");
   moveRobotHeading(270, 100);
+delay(1000);
+  
 }
 
 void setup()
@@ -156,8 +166,11 @@ void loop()
     }
       }
   else{
-   stopRobot();
+   moveRobot(200,-200);
   }
+
+
+//testMotors();
   delay(100); //delay a tenth of a second
   // put your main code here, to run repeatedly:
 }
