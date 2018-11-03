@@ -164,6 +164,7 @@ void testMotors(){
   moveRobotHeading(135,100);
   delay(300);
   moveRobotHeading(225, 100);
+  
   delay(300);
   moveRobotHeading(315, 100);
   delay(300);
@@ -177,12 +178,8 @@ void setup() {
   Serial.begin(250000);           // set baud rate to 250k
   Serial.println("Motor test!");
   setupAccelGyro();
-  
-//  testMotors(); 
 }
 
 void loop() {
   readAccelGyro();
-  // put your main code here, to run repeatedly:
-  
 }
