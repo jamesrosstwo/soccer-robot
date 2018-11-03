@@ -1,6 +1,11 @@
 #include <AFMotor.h>
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
+#include <I2Cdev.h>
+#include <MPU6050.h>
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+#include "Wire.h"
+#endif
 // motors will be in the order of front-left first, then clockwise from there.
 AF_DCMotor frontLeftMotor(1);
 AF_DCMotor frontRightMotor(2);
@@ -69,6 +74,35 @@ public:
   int readShade();
 };
 
+class PingSensor
+{
+private:
+  int pin;
+  long distance;
+
+public:
+  PingSensor(int pin_num);
+  long readDist();
+};
+
+PingSensor::PingSensor(int pin_num)
+{
+  pin = pin_num;
+}
+
+long PingSensor::readDist()
+{
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pin, LOW);
+  pinMode(pin, INPUT);
+  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
+  return distance;
+}
+
 Grayscale::Grayscale(int pin_num)
 {
   pin = pin_num;
@@ -101,140 +135,134 @@ int IRDir()
   InfraredResult readIn = InfraredSeeker::ReadAC();
   int out = readIn.Direction;
   return out;
-  class IRSensor
-  {
+}
 
-  public:
-    IRSensor()
-    {
-    }
-  };
-
-  /* Pin overview:
+/* Pin overview:
  * 7-10: Grayscales
  * 11-14: Pings
  */
-  AF_DCMotor frontLeftMotor(1);
-  AF_DCMotor frontRightMotor(2);
-  AF_DCMotor backLeftMotor(3);
-  AF_DCMotor backRightMotor(4);
-  AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
+AF_DCMotor frontLeftMotor(1);
+AF_DCMotor frontRightMotor(2);
+AF_DCMotor backLeftMotor(3);
+AF_DCMotor backRightMotor(4);
+AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
-  Grayscale fGrayscale(7);
-  Grayscale rGrayscale(8);
-  Grayscale bGrayscale(9);
-  Grayscale lGrayscale(10);
-  //Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
+Grayscale fGrayscale(7);
+Grayscale rGrayscale(8);
+Grayscale bGrayscale(9);
+Grayscale lGrayscale(10);
+//Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
 
-  PingSensor fPingSensor(11);
-  PingSensor rPingSensor(12);
-  PingSensor bPingSensor(13);
-  PingSensor lPingSensor(14);
-  PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
+PingSensor fPingSensor(11);
+PingSensor rPingSensor(12);
+PingSensor bPingSensor(13);
+PingSensor lPingSensor(14);
+PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
 
-  MPU6050 accelgyro;
-  int16_t ax, ay, az;
-  int16_t gx, gy, gz;
+MPU6050 accelgyro;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
 #define OUTPUT_READABLE_ACCELGYRO
 
-  void setupAccelGyro()
-  {
+void setupAccelGyro()
+{
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    Wire.begin();
+  Wire.begin();
 #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-    Fastwire::setup(400, true);
+  Fastwire::setup(400, true);
 #endif
-    accelgyro.initialize();
-    Serial.println("Testing device connections...");
-    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  }
+  accelgyro.initialize();
+  Serial.println("Testing device connections...");
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+}
 
-  void readAccelGyro()
-  {
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+void readAccelGyro()
+{
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 #ifdef OUTPUT_READABLE_ACCELGYRO
-    // display tab-separated accel/gyro x/y/z values
-    Serial.print("a/g:\t");
-    Serial.print(ax);
-    Serial.print("\t");
-    Serial.print(ay);
-    Serial.print("\t");
-    Serial.print(az);
-    Serial.print("\t");
-    Serial.print(gx);
-    Serial.print("\t");
-    Serial.print(gy);
-    Serial.print("\t");
-    Serial.println(gz);
+  // display tab-separated accel/gyro x/y/z values
+  Serial.print("a/g:\t");
+  Serial.print(ax);
+  Serial.print("\t");
+  Serial.print(ay);
+  Serial.print("\t");
+  Serial.print(az);
+  Serial.print("\t");
+  Serial.print(gx);
+  Serial.print("\t");
+  Serial.print(gy);
+  Serial.print("\t");
+  Serial.println(gz);
 #endif
-  }
+}
 
-  int IRStr()
+int IRStr()
+{
+  InfraredResult readIn = InfraredSeeker::ReadAC();
+  int out = readIn.Strength;
+  return out;
+}
+void testMotors()
+{
+  moveRobotHeading(0, 100);
+  delay(1000);
+
+  moveRobotHeading(90, 100);
+  delay(1000);
+
+  moveRobotHeading(180, 100);
+  delay(1000);
+  Serial.println("mark");
+  moveRobotHeading(270, 100);
+  delay(1000);
+  moveRobotHeading(45, 100);
+  delay(1000);
+  moveRobotHeading(135, 100);
+  delay(1000);
+  moveRobotHeading(225, 100);
+  delay(1000);
+  moveRobotHeading(315, 100);
+  delay(1000);
+  for (int i = 0; i < 360; i++)
   {
-    InfraredResult readIn = InfraredSeeker::ReadAC();
-    int out = readIn.Strength;
-    return out;
+    moveRobotHeading(i, 100);
+    delay(30);
   }
-  void testMotors()
+}
+
+void setup()
+{
+  Serial.begin(250000); // set baud rate to 250k
+  Serial.println("Motor test!");
+  Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
+  InfraredSeeker::Initialize();    //initializes the IR sensor
+}
+
+void loop()
+{
+  InfraredResult InfraredBall = InfraredSeeker::ReadAC();
+  int test = IRDir();
+  Serial.println(test);
+  if (test != 0)
   {
-    moveRobotHeading(0, 100);
-    delay(1000);
-
-    moveRobotHeading(90, 100);
-    delay(1000);
-
-    moveRobotHeading(180, 100);
-    delay(1000);
-    Serial.println("mark");
-    moveRobotHeading(270, 100);
-    delay(1000);
-    moveRobotHeading(45, 100);
-    delay(1000);
-    moveRobotHeading(135, 100);
-    delay(1000);
-    moveRobotHeading(225, 100);
-    delay(1000);
-    moveRobotHeading(315, 100);
-    delay(1000);
-    for (int i = 0; i < 360; i++)
-    {
-      moveRobotHeading(i, 100);
-      delay(30);
-    }
-  }
-
-  void setup()
-  {
-    Serial.begin(250000); // set baud rate to 250k
-    Serial.println("Motor test!");
-    Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
-    InfraredSeeker::Initialize();    //initializes the IR sensor
-  }
-
-  void loop()
-  {
-    InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-    int test = IRDir();
-    Serial.println(test);
-    if (test != 0)
-    {
-      if (test > 5)
-      {
-        moveRobot(200, -200);
-      }
-      else
-      {
-        moveRobot(-200, 200);
-      }
-    }
-    else
+    if (test > 5)
     {
       moveRobot(200, -200);
     }
-
-    //testMotors();
-    delay(100); //delay a tenth of a second
-    // put your main code here, to run repeatedly:
-    setupAccelGyro();
-    readAccelGyro();
+    else
+    {
+      moveRobot(-200, 200);
+    }
   }
+  else
+  {
+    moveRobot(200, -200);
+  }
+
+  //testMotors();
+  delay(100); //delay a tenth of a second
+  // put your main code here, to run repeatedly:
+  setupAccelGyro();
+  readAccelGyro();
+}
