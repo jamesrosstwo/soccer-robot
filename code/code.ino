@@ -15,8 +15,7 @@ AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLef
 
 int grayScale = 7;
 
-class Grayscale
-{
+class Grayscale{
   private:
     int result;
     int pin;
@@ -26,17 +25,14 @@ class Grayscale
     int readShade();
 };
 
-Grayscale::Grayscale(int pin_num)
-{
+Grayscale::Grayscale(int pin_num){
   pin = pin_num;
 }
-int Grayscale::readShade()
-{
+int Grayscale::readShade(){
   return analogRead(pin);
 }
 
-class PingSensor
-{
+class PingSensor{
 private:
   int pin;
   long distance;
@@ -46,14 +42,12 @@ public:
   long readDist();
 };
 
-PingSensor::PingSensor(int pin_num)
-{
+PingSensor::PingSensor(int pin_num){
   pin = pin_num;
 }
 
 //from https://www.arduino.cc/en/Tutorial/Ping
-long PingSensor::readDist()
-{
+long PingSensor::readDist(){
   pinMode(pin, OUTPUT);
   digitalWrite(pin, LOW);
   delayMicroseconds(2);
@@ -65,32 +59,26 @@ long PingSensor::readDist()
   return distance;
 }
 
-void moveRobot(int xSpeed, int ySpeed)
-{
-
+void moveRobot(int xSpeed, int ySpeed){
   float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
   float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
   float m0_2 = y + (x / 2);
   float m1_3 = y - (x / 2);
   Serial.println("zero and two");
   Serial.println(m0_2);
-  if (m1_3 < 0)
-  {
+  if (m1_3 < 0){
     motors[1].run(BACKWARD);
     motors[3].run(BACKWARD);
   }
-  else
-  {
+  else{
     motors[1].run(FORWARD);
     motors[3].run(FORWARD);
   }
-  if (m0_2 < 0)
-  {
+  if (m0_2 < 0){
     motors[0].run(BACKWARD);
     motors[2].run(BACKWARD);
   }
-  else
-  {
+  else{
     motors[0].run(FORWARD);
     motors[2].run(FORWARD);
   }
@@ -101,20 +89,17 @@ void moveRobot(int xSpeed, int ySpeed)
 }
 
 //moves robot in 360 degree direction with heading.
-void moveRobotHeading(int heading, int str)
-{
+void moveRobotHeading(int heading, int str){
   float x = cos((-heading + 90) * (PI / 180)) * str; //offset so 0 is the front of the robot, and goes clockwise
   float y = sin((heading + 90) * (PI / 180)) * str;
   moveRobot((int)x, (int)y);
 }
 
-void stopRobot()
-{
+void stopRobot(){
   moveRobot(0, 0);
 }
 
-int IRDir()
-{
+int IRDir(){
   InfraredResult readIn = InfraredSeeker::ReadAC();
   int out = readIn.Direction;
   return out;
@@ -148,55 +133,52 @@ int16_t gx, gy, gz;
 
 #define OUTPUT_READABLE_ACCELGYRO
 
-void setupAccelGyro()
-{
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-  Wire.begin();
-#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-  Fastwire::setup(400, true);
-#endif
+void setupAccelGyro(){
+  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    Wire.begin();
+  #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+    Fastwire::setup(400, true);
+  #endif
   accelgyro.initialize();
   Serial.println("Testing device connections...");
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 }
 
-void readAccelGyro()
-{
+void readAccelGyro(){
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-#ifdef OUTPUT_READABLE_ACCELGYRO
-  // display tab-separated accel/gyro x/y/z values
-  Serial.print("a/g:\t");
-  Serial.print(ax);
-  Serial.print("\t");
-  Serial.print(ay);
-  Serial.print("\t");
-  Serial.print(az);
-  Serial.print("\t");
-  Serial.print(gx);
-  Serial.print("\t");
-  Serial.print(gy);
-  Serial.print("\t");
-  Serial.println(gz);
-#endif
+  #ifdef OUTPUT_READABLE_ACCELGYRO
+    // display tab-separated accel/gyro x/y/z values
+    Serial.print("a/g:\t");
+    Serial.print(ax);
+    Serial.print("\t");
+    Serial.print(ay);
+    Serial.print("\t");
+    Serial.print(az);
+    Serial.print("\t");
+    Serial.print(gx);
+    Serial.print("\t");
+    Serial.print(gy);
+    Serial.print("\t");
+    Serial.println(gz);
+  #endif
 }
 
-int IRStr()
-{
+int IRStr(){
   InfraredResult readIn = InfraredSeeker::ReadAC();
   int out = readIn.Strength;
   return out;
 }
-void testMotors()
-{
+
+void testMotors(){
   moveRobotHeading(0, 100);
   delay(1000);
-
   moveRobotHeading(90, 100);
   delay(1000);
-
   moveRobotHeading(180, 100);
   delay(1000);
+
   Serial.println("mark");
+
   moveRobotHeading(270, 100);
   delay(1000);
   moveRobotHeading(45, 100);
@@ -207,39 +189,33 @@ void testMotors()
   delay(1000);
   moveRobotHeading(315, 100);
   delay(1000);
-  for (int i = 0; i < 360; i++)
-  {
+
+  for (int i = 0; i < 360; i++){
     moveRobotHeading(i, 100);
     delay(30);
   }
 }
 
-void setup()
-{
+void setup(){
   Serial.begin(250000); // set baud rate to 250k
   Serial.println("Motor test!");
   Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
   InfraredSeeker::Initialize();    //initializes the IR sensor
 }
 
-void loop()
-{
+void loop(){
   InfraredResult InfraredBall = InfraredSeeker::ReadAC();
   int test = IRDir();
   Serial.println(test);
-  if (test != 0)
-  {
-    if (test > 5)
-    {
+  if (test != 0){
+    if (test > 5){
       moveRobot(200, -200);
     }
-    else
-    {
+    else{
       moveRobot(-200, 200);
     }
   }
-  else
-  {
+  else{
     moveRobot(200, -200);
   }
 
