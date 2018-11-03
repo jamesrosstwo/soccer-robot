@@ -6,14 +6,6 @@
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   #include "Wire.h"
 #endif
-// motors will be in the order of front-left first, then clockwise from there.
-AF_DCMotor frontLeftMotor(1);
-AF_DCMotor frontRightMotor(2);
-AF_DCMotor backLeftMotor(3);
-AF_DCMotor backRightMotor(4);
-AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
-
-int grayScale = 7;
 
 class Grayscale{
   private:
@@ -59,6 +51,37 @@ long PingSensor::readDist(){
   return distance;
 }
 
+/* Pin overview:
+ * 7-10: Grayscales
+ * 11-14: Pings
+ */
+// motors will be in the order of front-left first, then clockwise from there.
+AF_DCMotor frontLeftMotor(1);
+AF_DCMotor frontRightMotor(2);
+AF_DCMotor backLeftMotor(3);
+AF_DCMotor backRightMotor(4);
+AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
+
+int grayScale = 7;
+
+Grayscale fGrayscale(7);
+Grayscale rGrayscale(8);
+Grayscale bGrayscale(9);
+Grayscale lGrayscale(10);
+//Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
+
+PingSensor fPingSensor(11);
+PingSensor rPingSensor(12);
+PingSensor bPingSensor(13);
+PingSensor lPingSensor(14);
+PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
+
+MPU6050 accelgyro;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
+#define OUTPUT_READABLE_ACCELGYRO
+
 void moveRobot(int xSpeed, int ySpeed){
   float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
   float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
@@ -99,40 +122,6 @@ void stopRobot(){
   moveRobot(0, 0);
 }
 
-int IRDir(){
-  InfraredResult readIn = InfraredSeeker::ReadAC();
-  int out = readIn.Direction;
-  return out;
-}
-
-/* Pin overview:
- * 7-10: Grayscales
- * 11-14: Pings
- */
-AF_DCMotor frontLeftMotor(1);
-AF_DCMotor frontRightMotor(2);
-AF_DCMotor backLeftMotor(3);
-AF_DCMotor backRightMotor(4);
-AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
-
-Grayscale fGrayscale(7);
-Grayscale rGrayscale(8);
-Grayscale bGrayscale(9);
-Grayscale lGrayscale(10);
-//Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
-
-PingSensor fPingSensor(11);
-PingSensor rPingSensor(12);
-PingSensor bPingSensor(13);
-PingSensor lPingSensor(14);
-PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
-
-MPU6050 accelgyro;
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-
-#define OUTPUT_READABLE_ACCELGYRO
-
 void setupAccelGyro(){
   #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     Wire.begin();
@@ -166,6 +155,12 @@ void readAccelGyro(){
 int IRStr(){
   InfraredResult readIn = InfraredSeeker::ReadAC();
   int out = readIn.Strength;
+  return out;
+}
+
+int IRDir(){
+  InfraredResult readIn = InfraredSeeker::ReadAC();
+  int out = readIn.Direction;
   return out;
 }
 
