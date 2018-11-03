@@ -4,7 +4,7 @@
 #include <I2Cdev.h>
 #include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
+  #include "Wire.h"
 #endif
 // motors will be in the order of front-left first, then clockwise from there.
 AF_DCMotor frontLeftMotor(1);
@@ -14,6 +14,56 @@ AF_DCMotor backRightMotor(4);
 AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
 int grayScale = 7;
+
+class Grayscale
+{
+  private:
+    int result;
+    int pin;
+
+  public:
+    Grayscale(int pin_num);
+    int readShade();
+};
+
+Grayscale::Grayscale(int pin_num)
+{
+  pin = pin_num;
+}
+int Grayscale::readShade()
+{
+  return analogRead(pin);
+}
+
+class PingSensor
+{
+private:
+  int pin;
+  long distance;
+
+public:
+  PingSensor(int pin_num);
+  long readDist();
+};
+
+PingSensor::PingSensor(int pin_num)
+{
+  pin = pin_num;
+}
+
+//from https://www.arduino.cc/en/Tutorial/Ping
+long PingSensor::readDist()
+{
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pin, LOW);
+  pinMode(pin, INPUT);
+  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
+  return distance;
+}
 
 void moveRobot(int xSpeed, int ySpeed)
 {
@@ -61,73 +111,6 @@ void moveRobotHeading(int heading, int str)
 void stopRobot()
 {
   moveRobot(0, 0);
-}
-
-class Grayscale
-{
-private:
-  int result;
-  int pin;
-
-public:
-  Grayscale(int pin_num);
-  int readShade();
-};
-
-class PingSensor
-{
-private:
-  int pin;
-  long distance;
-
-public:
-  PingSensor(int pin_num);
-  long readDist();
-};
-
-PingSensor::PingSensor(int pin_num)
-{
-  pin = pin_num;
-}
-
-long PingSensor::readDist()
-{
-  pinMode(pin, OUTPUT);
-  digitalWrite(pin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(pin, HIGH);
-  delayMicroseconds(5);
-  digitalWrite(pin, LOW);
-  pinMode(pin, INPUT);
-  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
-  return distance;
-}
-
-Grayscale::Grayscale(int pin_num)
-{
-  pin = pin_num;
-}
-int Grayscale::readShade()
-{
-  return analogRead(pin);
-}
-
-//from https://www.arduino.cc/en/Tutorial/Ping
-PingSensor::PingSensor(int pin_num)
-    pin = pin_num;
-}
-
-long PingSensor::readDist()
-{
-  pinMode(pin, OUTPUT);
-  digitalWrite(pin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(pin, HIGH);
-  delayMicroseconds(5);
-  digitalWrite(pin, LOW);
-  pinMode(pin, INPUT);
-  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
-  return distance;
 }
 
 int IRDir()
