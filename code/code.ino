@@ -37,7 +37,9 @@ public:
 PingSensor::PingSensor(int pin_num){
   pin = pin_num;
 }
-
+long microsecondsToCentimeters(long in){
+  return in/58;
+}
 //from https://www.arduino.cc/en/Tutorial/Ping
 long PingSensor::readDist(){
   pinMode(pin, OUTPUT);
@@ -79,7 +81,16 @@ PingSensor bPingSensor(13);
 PingSensor lPingSensor(14);
 PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
 
-<<<<<<< HEAD:soccer-robot.ino
+
+MPU6050 accelgyro;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
+#define OUTPUT_READABLE_ACCELGYRO
+
+void moveRobot(int xSpeed, int ySpeed)
+{
+
   float m0_2 = ySpeed + (xSpeed / 2);
   float m1_3 = ySpeed - (xSpeed / 2);
   m0_2=map(m0_2,0,380,0,255);
@@ -89,34 +100,21 @@ PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor}
  Serial.println(m1_3);
   if (m1_3 < 0)
   {
-=======
-MPU6050 accelgyro;
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-
-#define OUTPUT_READABLE_ACCELGYRO
-
-void moveRobot(int xSpeed, int ySpeed){
-  float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
-  float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
-  float m0_2 = y + (x / 2);
-  float m1_3 = y - (x / 2);
-  Serial.println("zero and two");
-  Serial.println(m0_2);
-  if (m1_3 < 0){
->>>>>>> IR:code/code.ino
     motors[1].run(BACKWARD);
     motors[3].run(BACKWARD);
   }
-  else{
+  else
+  {
     motors[1].run(FORWARD);
     motors[3].run(FORWARD);
   }
-  if (m0_2 < 0){
+  if (m0_2 < 0)
+  {
     motors[0].run(BACKWARD);
     motors[2].run(BACKWARD);
   }
-  else{
+  else
+  {
     motors[0].run(FORWARD);
     motors[2].run(FORWARD);
   }
@@ -124,13 +122,6 @@ void moveRobot(int xSpeed, int ySpeed){
   motors[1].setSpeed(abs(m1_3));
   motors[2].setSpeed(abs(m0_2));
   motors[3].setSpeed(abs(m1_3));
-}
-
-//moves robot in 360 degree direction with heading.
-void moveRobotHeading(int heading, int str){
-  float x = cos((-heading + 90) * (PI / 180)) * str; //offset so 0 is the front of the robot, and goes clockwise
-  float y = sin((heading + 90) * (PI / 180)) * str;
-  moveRobot((int)x, (int)y);
 }
 
 void stopRobot(){
@@ -237,31 +228,7 @@ void loop()
 {
   Serial.println("running");
   moveRobot(200,200);
-=======
-  Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
-  InfraredSeeker::Initialize();    //initializes the IR sensor
-}
 
-void loop(){
-  InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-  int test = IRDir();
-  Serial.println(test);
-  if (test != 0){
-    if (test > 5){
-      moveRobot(200, -200);
-    }
-    else{
-      moveRobot(-200, 200);
-    }
-  }
-  else{
-    moveRobot(200, -200);
-  }
-
-  //testMotors();
->>>>>>> IR:code/code.ino
-  delay(100); //delay a tenth of a second
-  // put your main code here, to run repeatedly:
   setupAccelGyro();
   readAccelGyro();
 }
