@@ -2,23 +2,27 @@
 #include <Wire.h> //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 // motors will be in the order of front-left first, then clockwise from there.
-AF_DCMotor frontLeftMotor(1);
+AF_DCMotor frontLeftMotor(3);
 AF_DCMotor frontRightMotor(2);
-AF_DCMotor backLeftMotor(3);
-AF_DCMotor backRightMotor(4);
+AF_DCMotor backLeftMotor(4);
+AF_DCMotor backRightMotor(1);
 AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
-
+const int leftG=15;
+const int  frontG=14;
+const int rightG=12;
+const int backG=13;
 int grayScale = 7;
 
 void moveRobot(int xSpeed, int ySpeed)
 {
 
-  float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
-  float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
-  float m0_2 = y + (x / 2);
-  float m1_3 = y - (x / 2);
-  Serial.println("zero and two");
-  Serial.println(m0_2);
+  float m0_2 = ySpeed + (xSpeed / 2);
+  float m1_3 = ySpeed - (xSpeed / 2);
+  m0_2=map(m0_2,0,380,0,255);
+  m1_3=map(m1_3,0,380,0,255);
+ // Serial.println("zero and two");
+ Serial.println(m0_2);
+ Serial.println(m1_3);
   if (m1_3 < 0)
   {
     motors[1].run(BACKWARD);
@@ -129,12 +133,13 @@ InfraredResult readIn=InfraredSeeker::ReadAC();
 }
 void testMotors()
 {
+  Serial.println("one");
   moveRobotHeading(0, 100);
   delay(1000);
-  
+  Serial.println("two");
   moveRobotHeading(90, 100);
   delay(1000);
-  
+  Serial.println("three");  
   moveRobotHeading(180, 100);
   delay(1000);
   Serial.println("mark");
@@ -148,29 +153,14 @@ void setup()
   Serial.begin(250000); // set baud rate to 250k
   Serial.println("Motor test!");
 Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
-  InfraredSeeker::Initialize(); //initializes the IR sensor
+  //InfraredSeeker::Initialize(); //initializes the IR sensor
   
 }
 
 void loop()
 {
-   InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-   int test=IRDir();
-  Serial.println(test);
-  if(test!=0){
-    if(test>5){
-      moveRobot(200,-200);
-    }
-    else{
-      moveRobot(-200,200);
-    }
-      }
-  else{
-   moveRobot(200,-200);
-  }
-
-
-//testMotors();
+  Serial.println("running");
+  moveRobot(200,200);
   delay(100); //delay a tenth of a second
   // put your main code here, to run repeatedly:
 }
