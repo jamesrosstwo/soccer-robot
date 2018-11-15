@@ -38,6 +38,11 @@ PingSensor::PingSensor(int pin_num){
   pin = pin_num;
 }
 
+long microsecondsToCentimeters(long microseconds)
+{
+ return microseconds / 29 / 2;
+}
+
 //from https://www.arduino.cc/en/Tutorial/Ping
 long PingSensor::readDist(){
   pinMode(pin, OUTPUT);
@@ -199,24 +204,24 @@ void setup(){
 }
 
 void loop(){
-  InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-  int test = IRDir();
-  Serial.println(test);
-  if (test != 0){
-    if (test > 5){
-      moveRobot(200, -200);
-    }
-    else{
-      moveRobot(-200, 200);
-    }
-  }
-  else{
+//  InfraredResult InfraredBall = InfraredSeeker::ReadAC();
+//  int test = IRDir();
+//  Serial.println(test);
+//  if (test != 0){
+//    if (test > 5){
+//      moveRobot(200, -200);
+//    }
+//    else{
+//      moveRobot(-200, 200);
+//    }
+//  }
+//  else{
     moveRobot(200, -200);
-  }
-
-  //testMotors();
-  delay(100); //delay a tenth of a second
-  // put your main code here, to run repeatedly:
-  setupAccelGyro();
-  readAccelGyro();
+//  }
+//
+//  //testMotors();
+//  delay(100); //delay a tenth of a second
+//  // put your main code here, to run repeatedly:
+//  setupAccelGyro();
+//  readAccelGyro();
 }
