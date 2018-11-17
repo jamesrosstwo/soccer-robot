@@ -29,7 +29,7 @@ private:
   int pin;
   long distance;
 
-public:
+public: 
   PingSensor(int pin_num);
   long readDist();
 };
@@ -87,26 +87,33 @@ int16_t gx, gy, gz;
 
 #define OUTPUT_READABLE_ACCELGYRO
 
-void moveRobot(int xSpeed, int ySpeed){
-  float y = map(ySpeed, 0, 255, 0, 180) * sqrt(2);
-  float x = map(xSpeed, 0, 255, 0, 180) * sqrt(2);
-  float m0_2 = y + (x / 2);
-  float m1_3 = y - (x / 2);
-  Serial.println("zero and two");
-  Serial.println(m0_2);
-  if (m1_3 < 0){
+void moveRobot(int xSpeed, int ySpeed)
+{
+
+  float m0_2 = ySpeed + (xSpeed / 2);
+  float m1_3 = ySpeed - (xSpeed / 2);
+  m0_2=map(m0_2,0,380,0,255);
+  m1_3=map(m1_3,0,380,0,255);
+ // Serial.println("zero and two");
+ Serial.println(m0_2);
+ Serial.println(m1_3);
+  if (m1_3 < 0)
+  {
     motors[1].run(BACKWARD);
     motors[3].run(BACKWARD);
   }
-  else{
+  else
+  {
     motors[1].run(FORWARD);
     motors[3].run(FORWARD);
   }
-  if (m0_2 < 0){
+  if (m0_2 < 0)
+  {
     motors[0].run(BACKWARD);
     motors[2].run(BACKWARD);
   }
-  else{
+  else
+  {
     motors[0].run(FORWARD);
     motors[2].run(FORWARD);
   }
@@ -225,3 +232,4 @@ void loop(){
 //  setupAccelGyro();
 //  readAccelGyro();
 }
+
