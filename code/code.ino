@@ -1,12 +1,27 @@
-#include <AFMotor.h>
+#include <SPI.h>
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 #include <I2Cdev.h>
 #include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-  #include "Wire.h"
+#include "Wire.h"
 #endif
-
+// L9958 slave select pins for SPI
+#define SS_M4 14
+#define SS_M3 13
+#define SS_M2 12
+#define SS_M1 11
+// L9958 DIRection pins
+#define DIR_M1 2
+#define DIR_M2 3
+#define DIR_M3 4
+#define DIR_M4 7
+// L9958 PWM pins
+#define PWM_M1 9
+#define PWM_M2 10    // Timer1
+#define PWM_M3 5
+#define PWM_M4 6     // Timer0
+#define ENABLE_MOTORS 8
 class Grayscale{
   private:
     int result;
@@ -61,11 +76,6 @@ long PingSensor::readDist(){
  * 11-14: Pings
  */
 // motors will be in the order of front-left first, then clockwise from there.
-AF_DCMotor frontLeftMotor(1);
-AF_DCMotor frontRightMotor(2);
-AF_DCMotor backLeftMotor(3);
-AF_DCMotor backRightMotor(4);
-AF_DCMotor motors[4] = {frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor};
 
 int grayScale = 7;
 
@@ -86,7 +96,8 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
 #define OUTPUT_READABLE_ACCELGYRO
-
+int MotorDir[]={DIR_M1,DIR_M2,DIR_M3,DIR_M4};
+int MotorStr[]={PWM_M1,PWM_M2,PWM_M3,PWM_M4};
 void moveRobot(int xSpeed, int ySpeed)
 {
 
@@ -99,28 +110,33 @@ void moveRobot(int xSpeed, int ySpeed)
  Serial.println(m1_3);
   if (m1_3 < 0)
   {
-    motors[1].run(BACKWARD);
-    motors[3].run(BACKWARD);
+    digitalWrite(MotorDir[1],0);
+    digitalWrite(MotorDir[3],0);
+    
   }
   else
   {
-    motors[1].run(FORWARD);
-    motors[3].run(FORWARD);
+    
+    digitalWrite(MotorDir[1],1);
+    digitalWrite(MotorDir[3],1);
+    
   }
   if (m0_2 < 0)
   {
-    motors[0].run(BACKWARD);
-    motors[2].run(BACKWARD);
+  
+    digitalWrite(MotorDir[0],0);
+    digitalWrite(MotorDir[2],0);
+    
   }
   else
   {
-    motors[0].run(FORWARD);
-    motors[2].run(FORWARD);
+    digitalWrite(MotorDir[0],1);
+    digitalWrite(MotorDir[2],1);
   }
-  motors[0].setSpeed(abs(m0_2));
-  motors[1].setSpeed(abs(m1_3));
-  motors[2].setSpeed(abs(m0_2));
-  motors[3].setSpeed(abs(m1_3));
+  analogWrite(MotorStr[0],m0_2);
+  analogWrite(MotorStr[2],m0_2);
+  analogWrite(MotorStr[1],m1_3);
+  analogWrite(MotorStr[3],m1_3);
 }
 
 //moves robot in 360 degree direction with heading.
@@ -197,39 +213,72 @@ void testMotors(){
   moveRobotHeading(315, 100);
   delay(1000);
 
-  for (int i = 0; i < 360; i++){
-    moveRobotHeading(i, 100);
-    delay(30);
-  }
+//  for (int i = 0; i < 360; i++){
+//    moveRobotHeading(i, 100);
+//    delay(30);
+//  }
 }
 
 void setup(){
+  unsigned int configWord;
   Serial.begin(250000); // set baud rate to 250k
   Serial.println("Motor test!");
-  Serial.println("Dir\tStrength"); //Prints Dir & Strength at top
-  InfraredSeeker::Initialize();    //initializes the IR sensor
-}
+  pinMode(SS_M1, OUTPUT); digitalWrite(SS_M1, LOW);  // HIGH = not selected
+  pinMode(SS_M2, OUTPUT); digitalWrite(SS_M2, LOW);
+  pinMode(SS_M3, OUTPUT); digitalWrite(SS_M3, LOW);
+  pinMode(SS_M4, OUTPUT); digitalWrite(SS_M4, LOW);
 
+  // L9958 DIRection pins
+  pinMode(DIR_M1, OUTPUT);
+  pinMode(DIR_M2, OUTPUT);
+  pinMode(DIR_M3, OUTPUT);
+  pinMode(DIR_M4, OUTPUT);
+
+  // L9958 PWM pins
+  pinMode(PWM_M1, OUTPUT);  digitalWrite(PWM_M1, LOW);
+  pinMode(PWM_M2, OUTPUT);  digitalWrite(PWM_M2, LOW);    // Timer1
+  pinMode(PWM_M3, OUTPUT);  digitalWrite(PWM_M3, LOW);
+  pinMode(PWM_M4, OUTPUT);  digitalWrite(PWM_M4, LOW);    // Timer0
+
+  // L9958 Enable for all 4 motors
+  pinMode(ENABLE_MOTORS, OUTPUT); 
+ digitalWrite(ENABLE_MOTORS, HIGH);  // HIGH = disabled
+  SPI.begin();
+  SPI.setBitOrder(LSBFIRST);
+  SPI.setDataMode(SPI_MODE1);  // clock pol = low, phase = high
+
+  // Motor 1
+  digitalWrite(SS_M1, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M1, HIGH);
+  // Motor 2
+  digitalWrite(SS_M2, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M2, HIGH);
+  // Motor 3
+  digitalWrite(SS_M3, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M3, HIGH);
+  // Motor 4
+  digitalWrite(SS_M4, LOW);
+  SPI.transfer(lowByte(configWord));
+  SPI.transfer(highByte(configWord));
+  digitalWrite(SS_M4, HIGH);
+
+  //Set initial actuator settings to pull at 0 speed for safety
+
+
+digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled  
+InfraredSeeker::Initialize();
+}
 void loop(){
-//  InfraredResult InfraredBall = InfraredSeeker::ReadAC();
-//  int test = IRDir();
-//  Serial.println(test);
-//  if (test != 0){
-//    if (test > 5){
-//      moveRobot(200, -200);
-//    }
-//    else{
-//      moveRobot(-200, 200);
-//    }
-//  }
-//  else{
-    moveRobot(200, -200);
-//  }
-//
-//  //testMotors();
-//  delay(100); //delay a tenth of a second
-//  // put your main code here, to run repeatedly:
-//  setupAccelGyro();
-//  readAccelGyro();
+  Serial.println("running");
+  Serial.println(IRDir());
+
+  setupAccelGyro();
+  readAccelGyro();
 }
 
