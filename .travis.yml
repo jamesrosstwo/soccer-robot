@@ -8,7 +8,8 @@ before_install:
   - sudo mv arduino-1.6.5 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
 install:
-  - ln -s $PWD /usr/local/share/arduino/libraries/*
+  - ln -s $PWD /usr/local/share/arduino/libraries/AFMotor
+  - arduino --install-library "Adafruit Motor Shield Library"
 script:
   - arduino --verify --board arduino:avr:uno $PWD/code/code.ino
 notifications:
