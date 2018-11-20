@@ -106,8 +106,8 @@ void moveRobot(int xSpeed, int ySpeed)
   m0_2=map(m0_2,0,380,0,255);
   m1_3=map(m1_3,0,380,0,255);
  // Serial.println("zero and two");
- Serial.println(m0_2);
- Serial.println(m1_3);
+// Serial.println(m0_2);
+// Serial.println(m1_3);
   if (m1_3 < 0)
   {
     digitalWrite(MotorDir[1],0);
@@ -187,9 +187,25 @@ int IRStr(){
 }
 
 int IRDir(){
+//  Serial.print("IR Direction: ");
   InfraredResult readIn = InfraredSeeker::ReadAC();
   int out = readIn.Direction;
+//  Serial.println();
   return out;
+}
+
+void followBall(){
+  float in = (float)IRDir();
+  if(in == 0){
+    return;
+  }
+  Serial.print(in);
+  Serial.print("  ");
+  //https://www.desmos.com/calculator/5gnscp5mos
+  float x = floor((340.3) - (533.6 * in) + (139.68 * pow(in, 2)) - (9.312 * pow(in, 3)));
+  moveRobot(x,0);
+  Serial.println(x);
+//  delay(1000);
 }
 
 void testMotors(){
@@ -219,9 +235,8 @@ void testMotors(){
 //  }
 }
 
-void setup(){
+void initMotors(){
   unsigned int configWord;
-  Serial.begin(250000); // set baud rate to 250k
   Serial.println("Motor test!");
   pinMode(SS_M1, OUTPUT); digitalWrite(SS_M1, LOW);  // HIGH = not selected
   pinMode(SS_M2, OUTPUT); digitalWrite(SS_M2, LOW);
@@ -269,16 +284,17 @@ void setup(){
   digitalWrite(SS_M4, HIGH);
 
   //Set initial actuator settings to pull at 0 speed for safety
+  digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled  
+}
 
-
-digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled  
-InfraredSeeker::Initialize();
+void setup(){
+  Serial.begin(250000); // set baud rate to 250k
+  initMotors();
+  InfraredSeeker::Initialize();
 }
 void loop(){
-  Serial.println("running");
-  Serial.println(IRDir());
-
-  setupAccelGyro();
-  readAccelGyro();
+//  Serial.print(IRDir());
+  followBall();
+//  readAccelGyro();
 }
 
