@@ -22,6 +22,7 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
+#define whiteLimit 50
 class Grayscale{
   private:
     int result;
@@ -77,13 +78,12 @@ long PingSensor::readDist(){
  */
 // motors will be in the order of front-left first, then clockwise from there.
 
-int grayScale = 7;
 
 Grayscale fGrayscale(7);
 Grayscale rGrayscale(8);
 Grayscale bGrayscale(9);
 Grayscale lGrayscale(10);
-//Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
+Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
 
 PingSensor fPingSensor(11);
 PingSensor rPingSensor(12);
@@ -98,9 +98,10 @@ int16_t gx, gy, gz;
 #define OUTPUT_READABLE_ACCELGYRO
 int MotorDir[]={DIR_M1,DIR_M2,DIR_M3,DIR_M4};
 int MotorStr[]={PWM_M1,PWM_M2,PWM_M3,PWM_M4};
+boolean locks[4];
 void moveRobot(int xSpeed, int ySpeed)
 {
-
+  Serial.println("run");
   float m0_2 = ySpeed + (xSpeed / 2);
   float m1_3 = ySpeed - (xSpeed / 2);
   m0_2=map(m0_2,0,380,0,255);
@@ -193,21 +194,34 @@ int IRDir(){
 //  Serial.println();
   return out;
 }
-
 void followBall(){
   float in = (float)IRDir();
   if(in == 0){
+    stopRobot();
     return;
   }
   Serial.print(in);
   Serial.print("  ");
   //https://www.desmos.com/calculator/5gnscp5mos
-  float x = floor((340.3) - (533.6 * in) + (139.68 * pow(in, 2)) - (9.312 * pow(in, 3)));
-  moveRobot(x,0);
-  Serial.println(x);
-//  delay(1000);
+  int x = round(775 - (1362.1 * in) + (647.85 * pow(in, 2)) - (138.4286 * pow(in, 3)) + (14.2857 * pow(in, 4)) - (0.57142 * pow(in, 5)));
+  int y = round(-372.2433 + (179.9747*in) - (17.99747* pow(in, 2)));
+  moveRobot(x,y);
+  if(x<0&&locks[3]){
+  stopRobot(); 
+ }
+ else if(x>0&&locks[1]){
+  stopRobot();
+ }
+ else if(y>0&&locks[0]){
+  stopRobot();
+ }
+ else if(y<0&&locks[2]){
+  stopRobot();
+ } 
+  Serial.print(x);
+  Serial.print(" ");
+  Serial.println(y);
 }
-
 void testMotors(){
   moveRobotHeading(0, 100);
   delay(1000);
@@ -286,15 +300,28 @@ void initMotors(){
   //Set initial actuator settings to pull at 0 speed for safety
   digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled  
 }
-
 void setup(){
   Serial.begin(250000); // set baud rate to 250k
   initMotors();
   InfraredSeeker::Initialize();
 }
 void loop(){
+  
+  for(int count=0;count<4;count++){
+    if(grayscales[count].readShade()>whiteLimit){
+      locks[count]=true;
+    }
+    else{
+      locks[count]=false;
+    }
+  }
+  
+  
 //  Serial.print(IRDir());
-  followBall();
+//Serial.println("start");
+//  followBall();
+  moveRobot(200,200);
 //  readAccelGyro();
+//  Serial.println(IRDir());
 }
 
