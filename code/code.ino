@@ -101,6 +101,7 @@ int MotorStr[]={PWM_M1,PWM_M2,PWM_M3,PWM_M4};
 boolean locks[4];
 void moveRobot(int xSpeed, int ySpeed)
 {
+  ySpeed*=-1;
   Serial.println("run");
   float m0_2 = ySpeed + (xSpeed / 2);
   float m1_3 = ySpeed - (xSpeed / 2);
