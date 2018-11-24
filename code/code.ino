@@ -188,19 +188,22 @@ int IRStr(){
 }
 
 int IRDir(){
-//  Serial.print("IR Direction: ");
+  Serial.print("IR Direction: ");
   InfraredResult readIn = InfraredSeeker::ReadAC();
+  
   int out = readIn.Direction;
 //  Serial.println();
   return out;
 }
 void followBall(){
   float in = (float)IRDir();
+  
+    Serial.print(in);
   if(in == 0){
     stopRobot();
     return;
   }
-  Serial.print(in);
+
   Serial.print("  ");
   //https://www.desmos.com/calculator/5gnscp5mos
   int x = round(775 - (1362.1 * in) + (647.85 * pow(in, 2)) - (138.4286 * pow(in, 3)) + (14.2857 * pow(in, 4)) - (0.57142 * pow(in, 5)));
@@ -303,24 +306,29 @@ void initMotors(){
 void setup(){
   Serial.begin(250000); // set baud rate to 250k
   initMotors();
-  InfraredSeeker::Initialize();
+ InfraredSeeker::Initialize();
+ Serial.println(InfraredSeeker::Test());
+  for(int count=0;count<4;count++){
+    locks[count]=false;
+  }
 }
 void loop(){
   
-  for(int count=0;count<4;count++){
-    if(grayscales[count].readShade()>whiteLimit){
-      locks[count]=true;
-    }
-    else{
-      locks[count]=false;
-    }
-  }
+//  
+//  for(int count=0;count<4;count++){
+//    if(grayscales[count].readShade()>whiteLimit){
+//      locks[count]=true;
+//    }
+//    else{
+//      locks[count]=false;
+//    }
+//  }
   
   
 //  Serial.print(IRDir());
-//Serial.println("start");
-//  followBall();
-  moveRobot(200,200);
+Serial.println("start");
+  followBall();
+  
 //  readAccelGyro();
 //  Serial.println(IRDir());
 }
