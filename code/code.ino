@@ -96,9 +96,9 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
 #define OUTPUT_READABLE_ACCELGYRO
-int MotorDir[]={DIR_M1,DIR_M2,DIR_M3,DIR_M4};
-int MotorStr[]={PWM_M1,PWM_M2,PWM_M3,PWM_M4};
 boolean locks[4];
+int Motors[][4]={{DIR_M1,DIR_M2,DIR_M3,DIR_M4},
+{PWM_M1,PWM_M2,PWM_M3,PWM_M4}};
 void moveRobot(int xSpeed, int ySpeed)
 {
   ySpeed*=-1;
@@ -112,33 +112,33 @@ void moveRobot(int xSpeed, int ySpeed)
 // Serial.println(m1_3);
   if (m1_3 < 0)
   {
-    digitalWrite(MotorDir[1],0);
-    digitalWrite(MotorDir[3],0);
+    digitalWrite(Motors[0][1],0);
+    digitalWrite(Motors[0][3],0);
     
   }
   else
   {
     
-    digitalWrite(MotorDir[1],1);
-    digitalWrite(MotorDir[3],1);
+    digitalWrite(Motors[0][1],1);
+    digitalWrite(Motors[0][3],1);
     
   }
   if (m0_2 < 0)
   {
   
-    digitalWrite(MotorDir[0],0);
-    digitalWrite(MotorDir[2],0);
+    digitalWrite(Motors[0][0],0);
+    digitalWrite(Motors[0][2],0);
     
   }
   else
   {
-    digitalWrite(MotorDir[0],1);
-    digitalWrite(MotorDir[2],1);
+    digitalWrite(Motors[0][0],1);
+    digitalWrite(Motors[0][2],1);
   }
-  analogWrite(MotorStr[0],m0_2);
-  analogWrite(MotorStr[2],m0_2);
-  analogWrite(MotorStr[1],m1_3);
-  analogWrite(MotorStr[3],m1_3);
+  analogWrite(Motors[1][0],m0_2);
+  analogWrite(Motors[1][2],m0_2);
+  analogWrite(Motors[0][1],m1_3);
+  analogWrite(Motors[0][3],m1_3);
 }
 
 //moves robot in 360 degree direction with heading.
