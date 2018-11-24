@@ -195,10 +195,16 @@ int IRDir(){
 //  Serial.println();
   return out;
 }
+
+void grayscaleWheelLock(int x, int y){
+ if((x<0&&locks[3]) || (x>0&&locks[1]) || (y>0&&locks[0]) || (y<0&&locks[2])){
+  stopRobot(); 
+ }
+}
+
 void followBall(){
   float in = (float)IRDir();
-  
-    Serial.print(in);
+  Serial.print(in);
   if(in == 0){
     stopRobot();
     return;
@@ -209,18 +215,7 @@ void followBall(){
   int x = round(775 - (1362.1 * in) + (647.85 * pow(in, 2)) - (138.4286 * pow(in, 3)) + (14.2857 * pow(in, 4)) - (0.57142 * pow(in, 5)));
   int y = round(-372.2433 + (179.9747*in) - (17.99747* pow(in, 2)));
   moveRobot(x,y);
-  if(x<0&&locks[3]){
-  stopRobot(); 
- }
- else if(x>0&&locks[1]){
-  stopRobot();
- }
- else if(y>0&&locks[0]){
-  stopRobot();
- }
- else if(y<0&&locks[2]){
-  stopRobot();
- } 
+  grayscaleWheelLock(x,y);
   Serial.print(x);
   Serial.print(" ");
   Serial.println(y);
@@ -246,10 +241,10 @@ void testMotors(){
   moveRobotHeading(315, 100);
   delay(1000);
 
-//  for (int i = 0; i < 360; i++){
-//    moveRobotHeading(i, 100);
-//    delay(30);
-//  }
+  for (int i = 0; i < 360; i++){
+    moveRobotHeading(i, 100);
+    delay(30);
+  }
 }
 
 void initMotors(){
