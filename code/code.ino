@@ -38,7 +38,41 @@ Grayscale::Grayscale(int pin_num){
 int Grayscale::readShade(){
   return analogRead(pin);
 }
+class GyroSensor{
+  private:
+  int Address,slave,i,heading;
+  byte headingData[2];
+  public:
+  GyroSensor(int useless);
+  int getHeading();
+};
 
+GyroSensor::GyroSensor(int useless){
+  Address = 0x42;
+  slave=Address>>1;
+  i=0;
+  heading=0;
+  
+}
+int GyroSensor::getHeading(){
+  Wire.beginTransmission(slave);
+  Wire.write("A");              // The "Get Data" command
+  Wire.endTransmission();
+  delay(10);                   // The HMC6352 needs at least a 70us (microsecond) delay
+  // after this command.  Using 10ms just makes it safe
+  // Read the 2 heading bytes, MSB first
+  // The resulting 16bit word is the compass heading in 10th's of a degree
+  // For example: a heading of 1345 would be 134.5 degrees
+  Wire.requestFrom(slave, 2);        // Request the 2 byte heading (MSB comes first)
+  i = 0;
+  while(Wire.available() && i < 2)
+  { 
+    headingData[i] = Wire.read();
+    i++;
+  }
+  heading = headingData[0]*256 + headingData[1];
+  return heading;
+}
 class PingSensor{
 private:
   int pin;
@@ -48,6 +82,7 @@ public:
   PingSensor(int pin_num);
   long readDist();
 };
+
 
 PingSensor::PingSensor(int pin_num){
   pin = pin_num;
@@ -213,7 +248,7 @@ void testMotors(){
     delay(30);
   }
 }
-
+GyroSensor gSensor(1);
 void initMotors(){
   unsigned int configWord;
   Serial.println("Motor test!");
@@ -267,7 +302,9 @@ void initMotors(){
 }
 void setup(){
   Serial.begin(250000); // set baud rate to 250k
+  Wire.begin();
   initMotors();
+  
  InfraredSeeker::Initialize();
  Serial.println(InfraredSeeker::Test());
   for(int count=0;count<4;count++){
@@ -287,9 +324,7 @@ void loop(){
 //  }
   
   
-//  Serial.print(IRDir());
-Serial.println("start");
-  followBall();
+Serial.println(gSensor.getHeading());
   
 //  Serial.println(IRDir());
 }
