@@ -71,7 +71,7 @@ int GyroSensor::getHeading(){
     i++;
   }
   heading = headingData[0]*256 + headingData[1];
-  return heading;
+  return heading/10;
 }
 class PingSensor{
 private:
@@ -324,8 +324,6 @@ void loop(){
 //  }
   
   
-Serial.println(gSensor.getHeading());
   
-//  Serial.println(IRDir());
 }
 
