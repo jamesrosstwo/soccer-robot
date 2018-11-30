@@ -2,7 +2,6 @@
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 #include <I2Cdev.h>
-#include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
 #endif
@@ -23,6 +22,15 @@
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
 #define whiteLimit 50
+
+int HMC6352Address = 0x42;
+// This is calculated in the setup() function
+int slaveAddress;
+int ledPin = 13;
+boolean ledState = false;
+byte headingData[2];
+int i, headingValue;
+
 class Grayscale{
   private:
     int result;
@@ -91,11 +99,6 @@ PingSensor bPingSensor(13);
 PingSensor lPingSensor(14);
 PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
 
-MPU6050 accelgyro;
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-
-#define OUTPUT_READABLE_ACCELGYRO
 boolean locks[4];
 int Motors[][4]={{DIR_M1,DIR_M2,DIR_M3,DIR_M4},
 {PWM_M1,PWM_M2,PWM_M3,PWM_M4}};
@@ -152,34 +155,38 @@ void stopRobot(){
   moveRobot(0, 0);
 }
 
-void setupAccelGyro(){
-  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    Wire.begin();
-  #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-    Fastwire::setup(400, true);
-  #endif
-  accelgyro.initialize();
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+void setupCompass(){
+  slaveAddress = HMC6352Address >> 1;   // This results in 0x21 as the address to pass to TWI
+  Serial.begin(9600);
+  pinMode(ledPin, OUTPUT);      // Set the LED pin as output
+  Wire.begin();
 }
 
-void readAccelGyro(){
-  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  #ifdef OUTPUT_READABLE_ACCELGYRO
-    // display tab-separated accel/gyro x/y/z values
-    Serial.print("a/g:\t");
-    Serial.print(ax);
-    Serial.print("\t");
-    Serial.print(ay);
-    Serial.print("\t");
-    Serial.print(az);
-    Serial.print("\t");
-    Serial.print(gx);
-    Serial.print("\t");
-    Serial.print(gy);
-    Serial.print("\t");
-    Serial.println(gz);
-  #endif
+void readCompass(){
+  // Send a "A" command to the HMC6352
+  // This requests the current heading data
+  Wire.beginTransmission(slaveAddress);
+  Wire.write("A");              // The "Get Data" command
+  Wire.endTransmission();
+  delay(10);                   // The HMC6352 needs at least a 70us (microsecond) delay
+  // after this command.  Using 10ms just makes it safe
+  // Read the 2 heading bytes, MSB first
+  // The resulting 16bit word is the compass heading in 10th's of a degree
+  // For example: a heading of 1345 would be 134.5 degrees
+  Wire.requestFrom(slaveAddress, 2);        // Request the 2 byte heading (MSB comes first)
+  i = 0;
+  while(Wire.available() && i < 2)
+  { 
+    headingData[i] = Wire.read();
+    i++;
+  }
+  headingValue = headingData[0]*256 + headingData[1];  // Put the MSB and LSB together
+  Serial.print("Current heading: ");
+  Serial.print(int (headingValue / 10));     // The whole number part of the heading
+  Serial.print(".");
+  Serial.print(int (headingValue % 10));     // The fractional part of the heading
+  Serial.println(" degrees");
+  delay(500);
 }
 
 int IRStr(){
@@ -191,9 +198,7 @@ int IRStr(){
 int IRDir(){
   Serial.print("IR Direction: ");
   InfraredResult readIn = InfraredSeeker::ReadAC();
-  
   int out = readIn.Direction;
-//  Serial.println();
   return out;
 }
 
@@ -228,8 +233,6 @@ void testMotors(){
   delay(1000);
   moveRobotHeading(180, 100);
   delay(1000);
-
-  Serial.println("mark");
 
   moveRobotHeading(270, 100);
   delay(1000);
@@ -270,7 +273,7 @@ void initMotors(){
 
   // L9958 Enable for all 4 motors
   pinMode(ENABLE_MOTORS, OUTPUT); 
- digitalWrite(ENABLE_MOTORS, HIGH);  // HIGH = disabled
+  digitalWrite(ENABLE_MOTORS, HIGH);  // HIGH = disabled
   SPI.begin();
   SPI.setBitOrder(LSBFIRST);
   SPI.setDataMode(SPI_MODE1);  // clock pol = low, phase = high
@@ -301,9 +304,15 @@ void initMotors(){
 }
 void setup(){
   Serial.begin(250000); // set baud rate to 250k
+  Serial.println("working0");
+//  setupCompass();
+  Serial.println("working");
   initMotors();
- InfraredSeeker::Initialize();
- Serial.println(InfraredSeeker::Test());
+  Serial.println("working2");
+  InfraredSeeker::Initialize();
+  Serial.println("working3");
+
+  Serial.println(InfraredSeeker::Test());
   for(int count=0;count<4;count++){
     locks[count]=false;
   }
@@ -322,8 +331,8 @@ void loop(){
   
   
 //  Serial.print(IRDir());
-Serial.println("start");
   followBall();
+//    readCompass();
   
 //  readAccelGyro();
 //  Serial.println(IRDir());
