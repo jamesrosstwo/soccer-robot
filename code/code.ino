@@ -2,7 +2,6 @@
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 #include <I2Cdev.h>
-#include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
 #endif
@@ -23,6 +22,8 @@
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
 #define whiteLimit 50
+#define motorLimit 250
+
 class Grayscale{
   private:
     int result;
@@ -39,7 +40,42 @@ Grayscale::Grayscale(int pin_num){
 int Grayscale::readShade(){
   return analogRead(pin);
 }
+class GyroSensor{
+  private:
+  int Address,slave,i,heading;
+  byte headingData[2];
+  public:
+  GyroSensor(int useless);
+  int getHeading();
+};
 
+int startDeg=0;
+GyroSensor::GyroSensor(int useless){
+  Address = 0x42;
+  slave=Address>>1;
+  i=0;
+  heading=0;
+  
+}
+int GyroSensor::getHeading(){
+  Wire.beginTransmission(slave);
+  Wire.write("A");              // The "Get Data" command
+  Wire.endTransmission();
+  delay(10);                   // The HMC6352 needs at least a 70us (microsecond) delay
+  // after this command.  Using 10ms just makes it safe
+  // Read the 2 heading bytes, MSB first
+  // The resulting 16bit word is the compass heading in 10th's of a degree
+  // For example: a heading of 1345 would be 134.5 degrees
+  Wire.requestFrom(slave, 2);        // Request the 2 byte heading (MSB comes first)
+  i = 0;
+  while(Wire.available() && i < 2)
+  { 
+    headingData[i] = Wire.read();
+    i++;
+  }
+  heading = headingData[0]*256 + headingData[1];
+  return heading/10;
+}
 class PingSensor{
 private:
   int pin;
@@ -49,6 +85,7 @@ public:
   PingSensor(int pin_num);
   long readDist();
 };
+
 
 PingSensor::PingSensor(int pin_num){
   pin = pin_num;
@@ -91,23 +128,19 @@ PingSensor bPingSensor(13);
 PingSensor lPingSensor(14);
 PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
 
-MPU6050 accelgyro;
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
 
-#define OUTPUT_READABLE_ACCELGYRO
 boolean locks[4];
 int Motors[][4]={{DIR_M1,DIR_M2,DIR_M3,DIR_M4},
 {PWM_M1,PWM_M2,PWM_M3,PWM_M4}};
 void moveRobot(int xSpeed, int ySpeed)
 {
   ySpeed*=-1;
-  Serial.println("run");
+//  Serial.println("run");
   float m0_2 = ySpeed + (xSpeed / 2);
   float m1_3 = ySpeed - (xSpeed / 2);
   m0_2=map(m0_2,0,380,0,255);
   m1_3=map(m1_3,0,380,0,255);
- // Serial.println("zero and two");
+//  Serial.println("zero and two");
 // Serial.println(m0_2);
 // Serial.println(m1_3);
   if (m1_3 < 0)
@@ -135,16 +168,19 @@ void moveRobot(int xSpeed, int ySpeed)
     digitalWrite(Motors[0][0],1);
     digitalWrite(Motors[0][2],1);
   }
-  analogWrite(Motors[1][0],m0_2);
-  analogWrite(Motors[1][2],m0_2);
-  analogWrite(Motors[0][1],m1_3);
-  analogWrite(Motors[0][3],m1_3);
+   analogWrite(Motors[1][0],abs(m0_2));
+  analogWrite(Motors[1][2],abs(m0_2));
+  analogWrite(Motors[1][1],abs(m1_3));
+  analogWrite(Motors[1][3],abs(m1_3));
 }
 
 //moves robot in 360 degree direction with heading.
 void moveRobotHeading(int heading, int str){
   float x = cos((-heading + 90) * (PI / 180)) * str; //offset so 0 is the front of the robot, and goes clockwise
   float y = sin((heading + 90) * (PI / 180)) * str;
+  Serial.println("Heading:");
+  Serial.println(x);
+  Serial.println(y);
   moveRobot((int)x, (int)y);
 }
 
@@ -152,35 +188,6 @@ void stopRobot(){
   moveRobot(0, 0);
 }
 
-void setupAccelGyro(){
-  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    Wire.begin();
-  #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-    Fastwire::setup(400, true);
-  #endif
-  accelgyro.initialize();
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-}
-
-void readAccelGyro(){
-  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  #ifdef OUTPUT_READABLE_ACCELGYRO
-    // display tab-separated accel/gyro x/y/z values
-    Serial.print("a/g:\t");
-    Serial.print(ax);
-    Serial.print("\t");
-    Serial.print(ay);
-    Serial.print("\t");
-    Serial.print(az);
-    Serial.print("\t");
-    Serial.print(gx);
-    Serial.print("\t");
-    Serial.print(gy);
-    Serial.print("\t");
-    Serial.println(gz);
-  #endif
-}
 
 int IRStr(){
   InfraredResult readIn = InfraredSeeker::ReadAC();
@@ -197,57 +204,67 @@ int IRDir(){
   return out;
 }
 
-void grayscaleWheelLock(int x, int y){
+boolean grayscaleWheelLock(int x, int y){
  if((x<0&&locks[3]) || (x>0&&locks[1]) || (y>0&&locks[0]) || (y<0&&locks[2])){
-  stopRobot(); 
+  
+  return true;
  }
+ return false;
 }
 
 void followBall(){
   float in = (float)IRDir();
   Serial.print(in);
+//  in=5;
   if(in == 0){
     stopRobot();
     return;
   }
-
-  Serial.print("  ");
+  
   //https://www.desmos.com/calculator/5gnscp5mos
-  int x = round(775 - (1362.1 * in) + (647.85 * pow(in, 2)) - (138.4286 * pow(in, 3)) + (14.2857 * pow(in, 4)) - (0.57142 * pow(in, 5)));
-  int y = round(-372.2433 + (179.9747*in) - (17.99747* pow(in, 2)));
-  moveRobot(x,y);
-  grayscaleWheelLock(x,y);
+  int x=map(in, 1,9,-motorLimit,motorLimit);
+  int y=-1;
+  if(in==1||in==9){
+    y=-255;
+  }
+  else{
+    y=map(abs(in-5),3,0,0,motorLimit); 
+  }
+  if(grayscaleWheelLock(x,y)){
+    stopRobot();  
+  }
+  else{
+    moveRobot(x,y);
+  
+  }
+  Serial.print(" ");
   Serial.print(x);
   Serial.print(" ");
   Serial.println(y);
 }
 void testMotors(){
-  moveRobotHeading(0, 100);
+  moveRobotHeading(0,100);
   delay(1000);
-  moveRobotHeading(90, 100);
+  moveRobotHeading(90,100);
   delay(1000);
-  moveRobotHeading(180, 100);
+  moveRobotHeading(180,100);
   delay(1000);
-
-  Serial.println("mark");
-
-  moveRobotHeading(270, 100);
+  moveRobotHeading(270,100);
   delay(1000);
-  moveRobotHeading(45, 100);
+  moveRobot(100,0);
   delay(1000);
-  moveRobotHeading(135, 100);
+  moveRobot(-100,0);
   delay(1000);
-  moveRobotHeading(225, 100);
+  moveRobot(0,100);
   delay(1000);
-  moveRobotHeading(315, 100);
+  moveRobot(0,-100);
   delay(1000);
-
-  for (int i = 0; i < 360; i++){
-    moveRobotHeading(i, 100);
-    delay(30);
-  }
+  turnLeft(100);
+  delay(1000);
+  turnRight(100);
+  delay(1000);
 }
-
+GyroSensor gSensor(1);
 void initMotors(){
   unsigned int configWord;
   Serial.println("Motor test!");
@@ -299,33 +316,81 @@ void initMotors(){
   //Set initial actuator settings to pull at 0 speed for safety
   digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled  
 }
+
+unsigned long timeSoFar=0;
 void setup(){
+  timeSoFar=millis();
   Serial.begin(250000); // set baud rate to 250k
+  Wire.begin();
   initMotors();
+  startDeg=gSensor.getHeading();
  InfraredSeeker::Initialize();
  Serial.println(InfraredSeeker::Test());
   for(int count=0;count<4;count++){
     locks[count]=false;
   }
 }
+void turnLeft(int str){
+  digitalWrite(Motors[0][0],0);
+  digitalWrite(Motors[0][1],0);
+  digitalWrite(Motors[0][2],1);
+  digitalWrite(Motors[0][3],1);
+  for(int count=0;count<4;count++){
+    analogWrite(Motors[1][count],str);
+  }
+  
+}
+void turnRight(int str){
+  digitalWrite(Motors[0][0],1);
+  digitalWrite(Motors[0][1],1);
+  digitalWrite(Motors[0][2],0);
+  digitalWrite(Motors[0][3],0);
+  for(int count=0;count<4;count++){
+    analogWrite(Motors[1][count],str);
+  }
+}
+int degreesAdjust(int in){
+  if(abs(in-startDeg-360)<181){
+    in=in-startDeg-360;
+    
+  }
+  else{
+    in=in-startDeg;
+  }
+  return in;
+}
+void reorient(){
+  Serial.println("mark");
+  Serial.println(gSensor.getHeading());
+  Serial.println(degreesAdjust(gSensor.getHeading()));
+  if(((millis())-timeSoFar)>500){//refreshes once every half second
+    timeSoFar=(millis());
+  }
+  else{
+    return;
+  }
+  if(degreesAdjust(gSensor.getHeading())<-10){
+    while(degreesAdjust(gSensor.getHeading())<-10){
+      
+//      Serial.println("RIGHT");
+     turnRight(50);
+    }  
+  }
+  else if(degreesAdjust(gSensor.getHeading())>10){
+    while(degreesAdjust(gSensor.getHeading())>10){
+//      Serial.println("LEFT");
+     turnLeft(50);
+    }  
+  }
+  else{
+//    Serial.println("good");
+  }
+  stopRobot();
+  
+}
 void loop(){
-  
-//  
-//  for(int count=0;count<4;count++){
-//    if(grayscales[count].readShade()>whiteLimit){
-//      locks[count]=true;
-//    }
-//    else{
-//      locks[count]=false;
-//    }
-//  }
-  
-  
-//  Serial.print(IRDir());
-Serial.println("start");
   followBall();
-  
-//  readAccelGyro();
-//  Serial.println(IRDir());
+   reorient();
+//Serial.println(gSensor.getHeading());
 }
 
