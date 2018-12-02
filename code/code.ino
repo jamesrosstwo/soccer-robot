@@ -144,26 +144,20 @@ int Motors[][4] = {{DIR_M1, DIR_M2, DIR_M3, DIR_M4},
 
 void moveRobot(int xSpeed, int ySpeed) {
     ySpeed *= -1;
-//  Serial.println("run");
     float m0_2 = ySpeed + (xSpeed / 2);
     float m1_3 = ySpeed - (xSpeed / 2);
     m0_2 = map(m0_2, 0, 380, 0, 255);
     m1_3 = map(m1_3, 0, 380, 0, 255);
-//  Serial.println("zero and two");
-// Serial.println(m0_2);
-// Serial.println(m1_3);
     if (m1_3 < 0) {
         digitalWrite(Motors[0][1], 0);
         digitalWrite(Motors[0][3], 0);
 
     } else {
-
         digitalWrite(Motors[0][1], 1);
         digitalWrite(Motors[0][3], 1);
 
     }
     if (m0_2 < 0) {
-
         digitalWrite(Motors[0][0], 0);
         digitalWrite(Motors[0][2], 0);
 
@@ -181,9 +175,11 @@ void moveRobot(int xSpeed, int ySpeed) {
 void moveRobotHeading(int heading, int str) {
     float x = cos((-heading + 90) * (PI / 180)) * str; //offset so 0 is the front of the robot, and goes clockwise
     float y = sin((heading + 90) * (PI / 180)) * str;
-    Serial.println("Heading:");
-    Serial.println(x);
-    Serial.println(y);
+    Serial.print("Heading:");
+    Serial.print(x);
+    Serial.print(" ");
+    Serial.print(y);
+    Serial.print(" ");
     moveRobot((int) x, (int) y);
 }
 
@@ -201,30 +197,20 @@ int IRStr() {
 int IRDir() {
     Serial.print("IR Direction: ");
     InfraredResult readIn = InfraredSeeker::ReadAC();
-
-    int out = readIn.Direction;
-//  Serial.println();
-    return out;
+    return readIn.Direction;
 }
 
 boolean grayscaleWheelLock(int x, int y) {
-    if ((x < 0 && locks[3]) || (x > 0 && locks[1]) || (y > 0 && locks[0]) || (y < 0 && locks[2])) {
-
-        return true;
-    }
-    return false;
+    return (x < 0 && locks[3]) || (x > 0 && locks[1]) || (y > 0 && locks[0]) || (y < 0 && locks[2]);
 }
 
 void followBall() {
     float in = (float) IRDir();
-    Serial.print(in);
-//  in=5;
     if (in == 0) {
         stopRobot();
         return;
     }
 
-    //https://www.desmos.com/calculator/5gnscp5mos
     int x = map(in, 1, 9, -motorLimit, motorLimit);
     int y = -1;
     if (in == 1 || in == 9) {
@@ -236,7 +222,6 @@ void followBall() {
         stopRobot();
     } else {
         moveRobot(x, y);
-
     }
     Serial.print(" ");
     Serial.print(x);
@@ -245,6 +230,7 @@ void followBall() {
 }
 
 void testMotors() {
+    Serial.println("Motor test!");
     moveRobotHeading(0, 100);
     delay(1000);
     moveRobotHeading(90, 100);
@@ -271,7 +257,6 @@ GyroSensor gSensor(1);
 
 void initMotors() {
     unsigned int configWord;
-    Serial.println("Motor test!");
     pinMode(SS_M1, OUTPUT);
     digitalWrite(SS_M1, LOW);  // HIGH = not selected
     pinMode(SS_M2, OUTPUT);
@@ -368,7 +353,6 @@ void turnRight(int str) {
 int degreesAdjust(int in) {
     if (abs(in - startDeg - 360) < 181) {
         in = in - startDeg - 360;
-
     } else {
         in = in - startDeg;
     }
@@ -376,35 +360,30 @@ int degreesAdjust(int in) {
 }
 
 void reorient() {
-    Serial.println("mark");
-    Serial.println(gSensor.getHeading());
-    Serial.println(degreesAdjust(gSensor.getHeading()));
-    if (((millis()) - timeSoFar) > 500) {//refreshes once every half second
-        timeSoFar = (millis());
-    } else {
+    Serial.print("reorienting: ");
+    Serial.print(gSensor.getHeading());
+    Serial.print(" => ");
+    Serial.print(degreesAdjust(gSensor.getHeading()));
+    Serial.print(" ");
+    if(millis() - timeSoFar <= 500){ //only refresh every 500ms
         return;
     }
+    timeSoFar = millis();
     if (degreesAdjust(gSensor.getHeading()) < -10) {
         while (degreesAdjust(gSensor.getHeading()) < -10) {
-
-//      Serial.println("RIGHT");
             turnRight(50);
         }
     } else if (degreesAdjust(gSensor.getHeading()) > 10) {
         while (degreesAdjust(gSensor.getHeading()) > 10) {
-//      Serial.println("LEFT");
             turnLeft(50);
         }
-    } else {
-//    Serial.println("good");
     }
     stopRobot();
-
 }
 
 void loop() {
     followBall();
     reorient();
-//Serial.println(gSensor.getHeading());
+//    Serial.println(gSensor.getHeading());
 }
 
