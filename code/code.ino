@@ -382,8 +382,8 @@ void reorient() {
 }
 
 void loop() {
-    followBall();
-    reorient();
-//    Serial.println(gSensor.getHeading());
+//    followBall();
+//    reorient();
+    Serial.println(gSensor.getHeading());
 }
 
