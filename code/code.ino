@@ -369,12 +369,16 @@ void reorient() {
         return;
     }
     timeSoFar = millis();
-    if (degreesAdjust(gSensor.getHeading()) < -10) {
-        while (degreesAdjust(gSensor.getHeading()) < -10) {
+
+    int adjustedHeading = degreesAdjust(gSensor.getHeading());
+    if (adjustedHeading < -10) {
+        while (adjustedHeading < -10) {
+            adjustedHeading = degreesAdjust(gSensor.getHeading());
             turnRight(50);
         }
-    } else if (degreesAdjust(gSensor.getHeading()) > 10) {
-        while (degreesAdjust(gSensor.getHeading()) > 10) {
+    } else if (adjustedHeading > 10) {
+        while (adjustedHeading > 10) {
+            adjustedHeading = degreesAdjust(gSensor.getHeading());
             turnLeft(50);
         }
     }
