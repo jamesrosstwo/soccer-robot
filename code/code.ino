@@ -1,4 +1,4 @@
-#include <SPI.h>
+ang#include <SPI.h>
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 #include <I2Cdev.h>
@@ -24,7 +24,7 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
-#define whiteLimit 50
+#define whiteLimit 250
 #define motorLimit 250
 
 class Grayscale {
@@ -386,6 +386,16 @@ void reorient() {
 }
 
 void loop() {
+  for(int count=0;count<4;count++){
+    int got=grayscales[count].readShade();
+    //Serial.println(got);
+    if(got<whiteLimit){
+      locks[count]=true;
+    }
+    else{
+      locks[count]=false;
+    }
+  }
 //    followBall();
 //    reorient();
     Serial.println(gSensor.getHeading());
