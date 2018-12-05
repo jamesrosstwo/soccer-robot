@@ -385,8 +385,8 @@ void reorient() {
     stopRobot();
 }
 
-void loop() {
-  for(int count=0;count<4;count++){
+void setLocks(){
+    for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
     //Serial.println(got);
     if(got<whiteLimit){
@@ -396,8 +396,12 @@ void loop() {
       locks[count]=false;
     }
   }
+}
+
+void loop() {
+  setLocks();
 //    followBall();
-//    reorient();
-    Serial.println(gSensor.getHeading());
+  reorient();
+  Serial.println(gSensor.getHeading());
 }
 
