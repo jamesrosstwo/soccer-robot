@@ -385,7 +385,6 @@ void reorient() {
     stopRobot();
 }
 
-<<<<<<< Updated upstream
 void setLocks(){
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
@@ -397,25 +396,11 @@ void setLocks(){
       locks[count]=false;
     }
   }
+}
+
+void loop() {
+  setLocks();
 //    followBall();
   reorient();
   Serial.println(gSensor.getHeading());
-=======
-void loop() {
-//  for(int count=0;count<4;count++){
-//    int got=grayscales[count].readShade();
-//    //Serial.println(got);
-//    if(got<whiteLimit){
-//      locks[count]=true;
-//    }
-//    else{
-//      locks[count]=false;
-//    }
-//  }
-//    followBall();
-//    reorient();
-//    Serial.println(gSensor.getHeading());
-  reorient();
->>>>>>> Stashed changes
 }
-
