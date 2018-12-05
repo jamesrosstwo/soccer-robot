@@ -1,4 +1,4 @@
-ang#include <SPI.h>
+#include <SPI.h>
 #include <Wire.h>             //Include the Wire Library
 #include <HTInfraredSeeker.h> //Include the IR Seeker Library
 #include <I2Cdev.h>
@@ -385,8 +385,9 @@ void reorient() {
     stopRobot();
 }
 
-void loop() {
-  for(int count=0;count<4;count++){
+<<<<<<< Updated upstream
+void setLocks(){
+    for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
     //Serial.println(got);
     if(got<whiteLimit){
@@ -397,7 +398,24 @@ void loop() {
     }
   }
 //    followBall();
+  reorient();
+  Serial.println(gSensor.getHeading());
+=======
+void loop() {
+//  for(int count=0;count<4;count++){
+//    int got=grayscales[count].readShade();
+//    //Serial.println(got);
+//    if(got<whiteLimit){
+//      locks[count]=true;
+//    }
+//    else{
+//      locks[count]=false;
+//    }
+//  }
+//    followBall();
 //    reorient();
-    Serial.println(gSensor.getHeading());
+//    Serial.println(gSensor.getHeading());
+  reorient();
+>>>>>>> Stashed changes
 }
 
