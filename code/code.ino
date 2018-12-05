@@ -399,9 +399,9 @@ void setLocks(){
 }
 
 void loop() {
-
+  setLocks();
 //    followBall();
-//    reorient();
-    Serial.println(gSensor.getHeading());
+  reorient();
+  Serial.println(gSensor.getHeading());
 }
 
