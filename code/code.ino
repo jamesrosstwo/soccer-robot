@@ -24,7 +24,7 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
-#define whiteLimit 250
+#define whiteLimit 300
 #define motorLimit 250
 
 class Grayscale {
@@ -125,7 +125,7 @@ long PingSensor::readDist() {
 // motors will be in the order of front-left first, then clockwise from there.
 
 
-Grayscale fGrayscale(7);
+Grayscale fGrayscale(11);
 Grayscale rGrayscale(8);
 Grayscale bGrayscale(9);
 Grayscale lGrayscale(10);
@@ -360,14 +360,15 @@ int degreesAdjust(int in) {
 }
 
 void reorient() {
+    
+    if(millis() - timeSoFar <= 500){ //only refresh every 500ms
+        return;
+    }
     Serial.print("reorienting: ");
     Serial.print(gSensor.getHeading());
     Serial.print(" => ");
     Serial.print(degreesAdjust(gSensor.getHeading()));
     Serial.print(" ");
-    if(millis() - timeSoFar <= 500){ //only refresh every 500ms
-        return;
-    }
     timeSoFar = millis();
 
     int adjustedHeading = degreesAdjust(gSensor.getHeading());
@@ -399,8 +400,9 @@ void setLocks(){
 }
 
 void loop() {
-  setLocks();
-//    followBall();
-  reorient();
-  Serial.println(gSensor.getHeading());
+  Serial.println(grayscales[0].readShade());
+//  setLocks();
+//   followBall();
+//  reorient();
+//  Serial.println(gSensor.getHeading());
 }
