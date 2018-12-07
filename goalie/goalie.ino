@@ -381,6 +381,7 @@ void moveToBack(){
   while(grayscales[2].readShade() < blackLimit){
     moveRobot(0,-200);
   }
+  delay(500);
   stopRobot();
 }
 
