@@ -25,7 +25,7 @@
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
 #define blackLimit 250
-#define motorLimit 250
+#define motorLimit 100
 
 class Grayscale {
 private:
@@ -125,9 +125,9 @@ long PingSensor::readDist() {
 // motors will be in the order of front-left first, then clockwise from there.
 
 
-Grayscale fGrayscale(11);
+Grayscale fGrayscale(9);
 Grayscale rGrayscale(8);
-Grayscale bGrayscale(9);
+Grayscale bGrayscale(11);
 Grayscale lGrayscale(10);
 Grayscale grayscales[4] = {fGrayscale, rGrayscale, bGrayscale, lGrayscale};
 
@@ -139,8 +139,9 @@ PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor}
 
 
 boolean locks[4];
-int Motors[][4] = {{DIR_M1, DIR_M2, DIR_M3, DIR_M4},
-                   {PWM_M1, PWM_M2, PWM_M3, PWM_M4}};
+int Motors[][4] =
+{{DIR_M2, DIR_M3, DIR_M4, DIR_M1},
+                   {PWM_M2, PWM_M3, PWM_M4, PWM_M1}};
 
 void moveRobot(int xSpeed, int ySpeed) {
     ySpeed *= -1;
@@ -211,16 +212,33 @@ void defend() {
         return;
     }
 
-    int x = map(in, 1, 9, -motorLimit, motorLimit);
+    int x = 0;
+    if(in!=0){
+      if(in<5){
+        x=-motorLimit;
+      }
+      else if(x>5){
+        x=motorLimit;
+      }
+      else{
+        x=0;
+      }
+    }
+    else{
+      stopRobot();
+      return;
+    }
     if (grayscaleWheelLock(x, 0)) {
         stopRobot();
-    } else {
-        moveRobot(x, 0);
+    } else if(grayscaleWheelLock(0,50)){
+        moveRobot(x, 0); 
+    }
+    else  {
+        moveRobot(x, 50);
     }
     Serial.print(" ");
     Serial.print(x);
     Serial.print(" ");
-    Serial.println(y);
 }
 
 void testMotors() {
@@ -338,9 +356,10 @@ int degreesAdjust(int in) {
     return in;
 }
 
+unsigned long timeSoFar = 0;
 void reorient() {
     
-    if(millis() - timeSoFar <= 2000){ //only refresh every 500ms
+    if(millis() - timeSoFar <= 0){ //only refresh every 500ms
         return;
     }
     Serial.print("reorienting: ");
@@ -351,19 +370,19 @@ void reorient() {
     timeSoFar = millis();
 
     int adjustedHeading = degreesAdjust(gSensor.getHeading());
-    if (adjustedHeading < -10) {
-        while (adjustedHeading < -10) {
+    if (adjustedHeading < -4) {
+        while (adjustedHeading < -4) {
             adjustedHeading = degreesAdjust(gSensor.getHeading());
             turnRight(50);
         }
-    } else if (adjustedHeading > 10) {
-        while (adjustedHeading > 10) {
+    } else if (adjustedHeading > 4) {
+        while (adjustedHeading > 4) {
             adjustedHeading = degreesAdjust(gSensor.getHeading());
             turnLeft(50);
         }
     }
     stopRobot();
-    delay(200);
+//    delay(200);
 }
 
 void setLocks(){
@@ -386,7 +405,6 @@ void moveToBack(){
   stopRobot();
 }
 
-unsigned long timeSoFar = 0;
 
 void setup() {
     timeSoFar = millis();
@@ -403,9 +421,9 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(grayscales[0].readShade());
-//  setLocks();
+//  moveRobot(0,100);
+  setLocks();
   defend();
-//  reorient();
+  reorient();
 //  Serial.println(gSensor.getHeading());
 }
