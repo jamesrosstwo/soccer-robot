@@ -25,7 +25,7 @@
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
 #define blackLimit 250
-#define motorLimit 100
+#define motorLimit 200
 
 class Grayscale {
 private:
@@ -217,7 +217,7 @@ void defend() {
       if(in<5){
         x=-motorLimit;
       }
-      else if(x>5){
+      else if(in>5){
         x=motorLimit;
       }
       else{
@@ -235,6 +235,24 @@ void defend() {
     }
     else  {
         moveRobot(x, 50);
+    }
+    if(grayscaleWheelLock(0,-50)){
+      moveRobot(0,-motorLimit);
+      for(int count=0;count<10;count++){
+        in=(float)IRDir();
+        if(in<5){
+        x=-motorLimit;
+      }
+      else if(in>5){
+        x=motorLimit;
+      }
+      else{
+        x=0;
+      }
+      moveRobot(x,-motorLimit);
+      delay(30);
+      }
+  stopRobot();
     }
     Serial.print(" ");
     Serial.print(x);
@@ -399,9 +417,9 @@ void setLocks(){
 
 void moveToBack(){
   while(grayscales[2].readShade() < blackLimit){
-    moveRobot(0,-200);
+    moveRobot(0,-motorLimit);
   }
-  delay(500);
+  delay(300);
   stopRobot();
 }
 
