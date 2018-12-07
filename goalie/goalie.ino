@@ -340,7 +340,7 @@ int degreesAdjust(int in) {
 
 void reorient() {
     
-    if(millis() - timeSoFar <= 500){ //only refresh every 500ms
+    if(millis() - timeSoFar <= 2000){ //only refresh every 500ms
         return;
     }
     Serial.print("reorienting: ");
@@ -363,6 +363,7 @@ void reorient() {
         }
     }
     stopRobot();
+    delay(200);
 }
 
 void setLocks(){

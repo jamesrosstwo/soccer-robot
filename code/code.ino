@@ -24,7 +24,7 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
-#define whiteLimit 150
+#define whiteLimit 150 // should be 300 for the course, value changes depending on what things we use
 #define motorLimit 250
 
 class Grayscale {
@@ -361,7 +361,7 @@ int degreesAdjust(int in) {
 
 void reorient() {
     
-    if(millis() - timeSoFar <= 0){ //only refresh every 500ms
+    if(millis() - timeSoFar <= 2000){ //only refresh every 500ms
         return;
     }
     Serial.print("reorienting: ");
@@ -384,13 +384,14 @@ void reorient() {
         }
     }
     stopRobot();
-//    delay(200);
+    delay(200);
 }
 
 void setLocks(){
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
-    //Serial.println(got);
+  
+//    Serial.println(got);
     if(got<whiteLimit){
       locks[count]=true;
     }
@@ -401,10 +402,9 @@ void setLocks(){
 }
 
 void loop() {
-//  Serial.println(grayscales[0].readShade());
-//  setLocks();
-//   followBall();
-//  reorient();
-  moveRobot(0,50);
+//  Serial.println("cycle");
+  setLocks();
+   followBall();
+  reorient();
 //  Serial.println(gSensor.getHeading());
 }
