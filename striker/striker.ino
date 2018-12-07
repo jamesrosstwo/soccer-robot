@@ -353,7 +353,10 @@ void turnRight(int str) {
 int degreesAdjust(int in) {
     if (abs(in - startDeg - 360) < 181) {
         in = in - startDeg - 360;
-    } else {
+    } else if(abs(in-startDeg+360)<181){
+      in=in-startDeg+360; 
+    }
+    else {
         in = in - startDeg;
     }
     return in;
@@ -405,6 +408,7 @@ void loop() {
 //  setLocks();
 //   followBall();
 //  reorient();
-  moveRobot(0,50);
+turnLeft(50);
+//  moveRobot(0,100);
 //  Serial.println(gSensor.getHeading());
 }
