@@ -308,21 +308,6 @@ void initMotors() {
     digitalWrite(ENABLE_MOTORS, LOW);// LOW = enabled
 }
 
-unsigned long timeSoFar = 0;
-
-void setup() {
-    timeSoFar = millis();
-    Serial.begin(250000); // set baud rate to 250k
-    Wire.begin();
-    initMotors();
-    startDeg = gSensor.getHeading();
-    InfraredSeeker::Initialize();
-    Serial.println(InfraredSeeker::Test());
-    for (int count = 0; count < 4; count++) {
-        locks[count] = false;
-    }
-}
-
 void turnLeft(int str) {
     digitalWrite(Motors[0][0], 0);
     digitalWrite(Motors[0][1], 0);
@@ -392,10 +377,33 @@ void setLocks(){
   }
 }
 
+void moveToBack(){
+  while(grayscales[2].readShade() < blackLimit){
+    moveRobot(0,-200);
+  }
+  stopRobot();
+}
+
+unsigned long timeSoFar = 0;
+
+void setup() {
+    timeSoFar = millis();
+    Serial.begin(250000); // set baud rate to 250k
+    Wire.begin();
+    initMotors();
+    startDeg = gSensor.getHeading();
+    InfraredSeeker::Initialize();
+    Serial.println(InfraredSeeker::Test());
+    for (int count = 0; count < 4; count++) {
+        locks[count] = false;
+    }
+    moveToBack();
+}
+
 void loop() {
   Serial.println(grayscales[0].readShade());
 //  setLocks();
-//   followBall();
+  defend();
 //  reorient();
 //  Serial.println(gSensor.getHeading());
 }
