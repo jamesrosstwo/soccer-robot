@@ -319,14 +319,20 @@ unsigned long timeSoFar = 0;
 void setup() {
     timeSoFar = millis();
     Serial.begin(250000); // set baud rate to 250k
+    
+  Serial.println("begin");
     Wire.begin();
     initMotors();
     startDeg = gSensor.getHeading();
+    Serial.println("init Ir");
     InfraredSeeker::Initialize();
+    Serial.println("done IR");
     Serial.println(InfraredSeeker::Test());
+    Serial.println("IR good");
     for (int count = 0; count < 4; count++) {
         locks[count] = false;
     }
+    Serial.println("finish setup");
 }
 
 void turnLeft(int str) {

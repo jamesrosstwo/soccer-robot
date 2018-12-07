@@ -24,9 +24,11 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
-#define blackLimit 250
-#define motorLimit 200
-
+#define blackLimit 410
+#define whiteLimit 345
+#define motorLimit 255
+#define ANGLELIMIT 6
+int whiteLimits[4]={300,430,300,320};
 class Grayscale {
 private:
     int result;
@@ -198,7 +200,9 @@ int IRStr() {
 int IRDir() {
     Serial.print("IR Direction: ");
     InfraredResult readIn = InfraredSeeker::ReadAC();
+    
     return readIn.Direction;
+    
 }
 
 boolean grayscaleWheelLock(int x, int y) {
@@ -230,33 +234,14 @@ void defend() {
     }
     if (grayscaleWheelLock(x, 0)) {
         stopRobot();
-    } else if(grayscaleWheelLock(0,50)){
+    } else{
         moveRobot(x, 0); 
     }
-    else  {
-        moveRobot(x, 50);
-    }
-    if(grayscaleWheelLock(0,-50)){
-      moveRobot(0,-motorLimit);
-      for(int count=0;count<10;count++){
-        in=(float)IRDir();
-        if(in<5){
-        x=-motorLimit;
-      }
-      else if(in>5){
-        x=motorLimit;
-      }
-      else{
-        x=0;
-      }
-      moveRobot(x,-motorLimit);
-      delay(30);
-      }
-  stopRobot();
-    }
+    
     Serial.print(" ");
     Serial.print(x);
     Serial.print(" ");
+    delay(50);
 }
 
 void testMotors() {
@@ -368,7 +353,10 @@ void turnRight(int str) {
 int degreesAdjust(int in) {
     if (abs(in - startDeg - 360) < 181) {
         in = in - startDeg - 360;
-    } else {
+    }else if(abs(in-startDeg+360)<181){
+       in = in - startDeg + 360;
+    }
+    else {
         in = in - startDeg;
     }
     return in;
@@ -388,15 +376,15 @@ void reorient() {
     timeSoFar = millis();
 
     int adjustedHeading = degreesAdjust(gSensor.getHeading());
-    if (adjustedHeading < -4) {
-        while (adjustedHeading < -4) {
+    if (adjustedHeading < -ANGLELIMIT) {
+        while (adjustedHeading < -ANGLELIMIT) {
             adjustedHeading = degreesAdjust(gSensor.getHeading());
-            turnRight(50);
+            turnRight(100);
         }
-    } else if (adjustedHeading > 4) {
-        while (adjustedHeading > 4) {
+    } else if (adjustedHeading > ANGLELIMIT) {
+        while (adjustedHeading > ANGLELIMIT) {
             adjustedHeading = degreesAdjust(gSensor.getHeading());
-            turnLeft(50);
+            turnLeft(100);
         }
     }
     stopRobot();
@@ -404,9 +392,11 @@ void reorient() {
 }
 
 void setLocks(){
+  Serial.println("cycle");
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
-    if(got>blackLimit){
+    Serial.println(got);
+    if(got<whiteLimits[count]){
       locks[count]=true;
     }
     else{
@@ -416,8 +406,14 @@ void setLocks(){
 }
 
 void moveToBack(){
-  while(grayscales[2].readShade() < blackLimit){
-    moveRobot(0,-motorLimit);
+  int i = 0;
+  moveRobot(0,-motorLimit);
+  for(i = 0; i < 17 && grayscales[2].readShade() >whiteLimit; i++){
+//    moveRobot(0,-motorLimit);
+    delay(100);
+  }
+  if(i == 17){
+    moveRobot(0, 100);
   }
   delay(300);
   stopRobot();
@@ -430,18 +426,22 @@ void setup() {
     Wire.begin();
     initMotors();
     startDeg = gSensor.getHeading();
+    Serial.println("IR init");
     InfraredSeeker::Initialize();
     Serial.println(InfraredSeeker::Test());
     for (int count = 0; count < 4; count++) {
         locks[count] = false;
     }
     moveToBack();
+    Serial.println("done setup");
 }
 
 void loop() {
 //  moveRobot(0,100);
-  setLocks();
-  defend();
-  reorient();
+//  Serial.println(grayscales[1].readShade());
+    moveRobot(0,200);
+//  setLocks();
+//  defend();
+//  reorient();
 //  Serial.println(gSensor.getHeading());
 }
