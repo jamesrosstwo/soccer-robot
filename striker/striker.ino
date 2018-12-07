@@ -25,7 +25,9 @@
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
 #define whiteLimit 150
-#define motorLimit 250
+#define motorLimit 200
+
+int whitelimits[4] = {460,405,330,350};
 
 class Grayscale {
 private:
@@ -397,10 +399,11 @@ void reorient() {
 }
 
 void setLocks(){
+    Serial.println("Mak");
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
-    //Serial.println(got);
-    if(got<whiteLimit){
+    Serial.println(got);
+    if(got<whitelimits[count]){
       locks[count]=true;
     }
     else{
@@ -409,12 +412,12 @@ void setLocks(){
   }
 }
 
-void loop() {
+void loop() { 
 //  Serial.println(grayscales[0].readShade());
-//  setLocks();
-//   followBall();
-//  reorient();
-turnLeft(50);
+  setLocks();
+ followBall();
+  reorient();
+
 //  moveRobot(0,100);
 //  Serial.println(gSensor.getHeading());
 }
