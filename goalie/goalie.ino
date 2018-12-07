@@ -204,7 +204,7 @@ boolean grayscaleWheelLock(int x, int y) {
     return (x < 0 && locks[3]) || (x > 0 && locks[1]) || (y > 0 && locks[0]) || (y < 0 && locks[2]);
 }
 
-void followBall() {
+void defend() {
     float in = (float) IRDir();
     if (in == 0) {
         stopRobot();
@@ -212,16 +212,10 @@ void followBall() {
     }
 
     int x = map(in, 1, 9, -motorLimit, motorLimit);
-    int y = -1;
-    if (in == 1 || in == 9) {
-        y = -255;
-    } else {
-        y = map(abs(in - 5), 3, 0, 0, motorLimit);
-    }
-    if (grayscaleWheelLock(x, y)) {
+    if (grayscaleWheelLock(x, 0)) {
         stopRobot();
     } else {
-        moveRobot(x, y);
+        moveRobot(x, 0);
     }
     Serial.print(" ");
     Serial.print(x);
@@ -389,7 +383,6 @@ void reorient() {
 void setLocks(){
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
-    //Serial.println(got);
     if(got<whiteLimit){
       locks[count]=true;
     }
