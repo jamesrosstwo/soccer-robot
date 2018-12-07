@@ -24,7 +24,7 @@
 #define PWM_M3 5
 #define PWM_M4 6     // Timer0
 #define ENABLE_MOTORS 8
-#define whiteLimit 300
+#define blackLimit 250
 #define motorLimit 250
 
 class Grayscale {
@@ -383,7 +383,7 @@ void reorient() {
 void setLocks(){
     for(int count=0;count<4;count++){
     int got=grayscales[count].readShade();
-    if(got<whiteLimit){
+    if(got>blackLimit){
       locks[count]=true;
     }
     else{
