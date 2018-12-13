@@ -29,6 +29,43 @@
 
 int whitelimits[4] = {460,405,330,350};
 
+class PingSensor{
+private:
+  int pin;
+  long distance;
+
+public: 
+  PingSensor(int pin_num);
+  long readDist();
+};
+
+
+PingSensor::PingSensor(int pin_num){
+  pin = pin_num;
+}
+
+PingSensor fPingSensor(11);
+PingSensor rPingSensor(12);
+PingSensor bPingSensor(13);
+PingSensor lPingSensor(14);
+PingSensor pingSensors[4] = {fPingSensor, rPingSensor, bPingSensor, lPingSensor};
+
+
+long PingSensor::readDist(){
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pin, LOW);
+  pinMode(pin, INPUT);
+  distance = microsecondsToCentimeters(pulseIn(pin, HIGH));
+  return distance;
+}
+
+
+
+
 class Grayscale {
 private:
     int result;
